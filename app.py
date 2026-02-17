@@ -224,7 +224,7 @@ def main():
                         "question": question,
                         "answer": answer,
                         "sources": list(sources),
-                        "confidence": confidence_score
+                        "confidence": float(confidence_score)
                     }, indent=2)
                     st.download_button(
                         "Download JSON", 
