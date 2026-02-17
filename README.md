@@ -165,3 +165,13 @@ This prototype validates that future.
 Working prototype  
 Publicly deployed  
 Actively evolving
+
+---
+
+## License
+
+This project is licensed under the MIT License.
+
+See the LICENSE file for details.
+
+MIT License © 2026 Rahul Phaltankar
