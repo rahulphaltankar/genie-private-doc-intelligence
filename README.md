@@ -1,221 +1,167 @@
-# Genie — Private Document Intelligence Assistant
+# 🧞 Genie — Private Document Intelligence Assistant
 
-Genie is a private, evidence-based AI assistant that answers questions from your own documents using Retrieval-Augmented Generation (RAG).
-
-Built from scratch in ~4 hours as a solo rapid prototype to validate the hypothesis:
-
-"Teams need a private, trustworthy AI system that can instantly answer questions from their internal knowledge base."
-
-This is not a chatbot. This is a private intelligence layer over your organization's knowledge.
+> Built from scratch in ~4 hours to prove a simple idea:  
+> Your documents already contain answers. Genie makes them instantly accessible.
 
 ---
 
-## Live Demo
+## 🌐 Live Demo
 
-Public app:
-https://YOUR_STREAMLIT_URL_HERE
+**Public App:**  
+https://genie-app-doc-intelligence-8sqvssggb7bwbyrxg6xaq9.streamlit.app/
 
-GitHub repo:
+**GitHub Repository:**  
 https://github.com/rahulphaltankar/genie-private-doc-intelligence
 
 ---
 
-## Problem
+## ⚡ What Genie Does
 
-Teams constantly lose time searching through:
+Genie lets you upload your private documents and ask questions in natural language.
 
-- Technical documentation
-- Research papers
-- Jira tickets
-- Confluence pages
-- Architecture docs
-- Compliance documents
+It reads, understands, retrieves evidence, and answers grounded in your documents.
 
-Information exists, but is not accessible in real-time.
-
-Genie solves this.
+No hallucinated internet answers. Only your knowledge.
 
 ---
 
-## Solution
+## 🎯 Why This Matters
 
-Genie allows users to upload documents and instantly ask questions.
+Teams waste hours searching through:
 
-Genie:
+- Technical documentation  
+- Architecture specs  
+- Research papers  
+- Compliance documents  
+- Internal notes  
 
-- Reads the documents
-- Converts them into vector embeddings
-- Retrieves relevant evidence
-- Generates answers grounded in actual document content
-- Shows confidence and supporting sources
+Genie reduces that to seconds.
 
-This prevents hallucinations and improves trust.
-
----
-
-## Core Capabilities
-
-- Upload multiple documents (PDF, DOCX, TXT)
-- Ask natural language questions
-- Evidence-grounded responses
-- Private and secure (your data is not used to train models)
-- Runs locally or in private cloud
-- Fast response time
+This is the foundation layer for private enterprise AI assistants.
 
 ---
 
-## Architecture Overview
+## 🧠 How It Works (Architecture)
 
 User Question
 ↓
-Embedding Model (SentenceTransformers)
+Document Upload
+↓
+Text Chunking
+↓
+Embeddings (sentence-transformers)
 ↓
 Vector Search (FAISS)
 ↓
-Retrieve Relevant Document Chunks
-↓
-Context Injection
+Relevant Context Retrieval
 ↓
 LLM Generation (Mistral)
 ↓
-Answer + Sources + Confidence
+Answer + Evidence + Confidence
+
 
 ---
 
-## Tech Stack
+## 🛠 Tech Stack
 
-Frontend:
+**Frontend**
 - Streamlit
 
-Backend:
+**Backend**
 - Python
 
-LLM:
-- Mistral API
+**LLM**
+- Mistral
 
-Embeddings:
-- sentence-transformers (all-MiniLM-L6-v2)
+**Embeddings**
+- sentence-transformers (MiniLM)
 
-Vector Database:
+**Vector Database**
 - FAISS
 
-Document Parsing:
+**Document Processing**
 - pypdf
 - python-docx
 
-Deployment:
+**Deployment**
 - Streamlit Cloud
 
-Version Control:
-- Git
-- GitHub
+**Version Control**
+- Git + GitHub
 
 ---
 
-## Why This Matters
-
-Most companies are becoming AI-first.
-
-But they lack:
-
-- Private AI assistants
-- Evidence-grounded responses
-- Trustworthy document intelligence
-
-Genie is a foundational layer for:
-
-- Compliance assistants
-- Engineering knowledge assistants
-- Digital transformation copilots
-- Enterprise AI agents
-
----
-
-## Example Use Cases
+## 🚀 Example Use Cases
 
 Engineering:
-"What are the requirements for this system?"
+> "What does this architecture require?"
 
 Compliance:
-"Does this design comply with EU AI Act?"
+> "Does this design align with regulations?"
 
 Research:
-"What does this paper conclude?"
+> "What are the key findings of this paper?"
 
 Product:
-"What decisions were made in previous sprints?"
+> "What decisions were previously made?"
 
 ---
 
-## Performance
+## ⚙️ Performance
 
-Prototype built in ~4 hours.
-
-Supports:
-
-- Multiple documents
-- Real-time semantic search
-- Evidence-grounded responses
-- Local and cloud deployment
-
-Response time: ~2–5 seconds
+- Built in: ~4 hours  
+- Response time: ~2–5 seconds  
+- Fully functional prototype  
+- Public deployment ready  
 
 ---
 
-## Security
+## 🔒 Privacy
 
-- Documents processed privately
-- No training on user data
-- API-based inference
-- Can be deployed on private infrastructure
+- Documents processed privately  
+- No training on your data  
+- Retrieval-based generation only  
 
----
-
-## Limitations (Prototype Stage)
-
-- Basic confidence scoring
-- No reranking yet
-- No conversation memory yet
-
-These are being actively improved.
+Can be deployed locally or privately.
 
 ---
 
-## Future Roadmap
+## 📈 Future Roadmap
 
-- Evidence reranking
-- Verified confidence scoring
-- Chat memory
-- Enterprise connectors (Jira, Confluence, GitHub)
-- On-prem deployment
-- Multi-modal support
+- Chat memory  
+- Evidence verification layer  
+- Enterprise connectors (Jira, Confluence, GitHub)  
+- On-prem deployment  
+- Multi-modal support  
 
 ---
 
-## Author
+## 👤 Author
 
-Built by Rahul Phaltankar
+Rahul Phaltankar
 
-AI Governance | AI Systems | Digital Transformation
+AI Governance • AI Systems • Digital Transformation
 
-GitHub:
+GitHub:  
 https://github.com/rahulphaltankar
 
-LinkedIn:
-https://linkedin.com/in/YOUR_LINKEDIN
+LinkedIn:  
+https://www.linkedin.com/in/rahulphaltankar
 
 ---
 
-## Why I Built This
+## 💡 Why This Exists
 
-I experienced firsthand how teams waste hours searching for answers that already exist in documentation.
+Knowledge exists inside documents, but remains inaccessible in real time.
 
-Genie proves that private, trustworthy AI assistants can be built quickly and provide immediate value.
+Genie proves that private, trustworthy AI assistants can be built rapidly and deployed immediately.
 
-This prototype validates the core concept.
+This prototype validates that future.
 
 ---
 
-## License
+## ⭐ Status
 
-MIT License
+Working prototype  
+Publicly deployed  
+Actively evolving
