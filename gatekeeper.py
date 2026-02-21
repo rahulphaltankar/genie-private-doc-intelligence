@@ -36,78 +36,33 @@ def run_gatekeeper(
     mode: Literal["factual", "synthesis"] = "factual"
 ) -> tuple:
     """
-    Dual-enforcement decision engine.
-
-    Args:
-        answer:           The LLM-generated answer string.
-        retrieved_chunks: List of document text chunks used as context.
-        grounding_score:  Cosine similarity between answer and chunks (0.0–1.0).
-        mode:             "factual" (strict path) or "synthesis" (comprehension path).
-
-    Returns:
-        (decision, reason) where decision is PASS | SYNTHESIS | BLOCK
+    Unified enterprise gatekeeper logic.
+    
+    Decision Model:
+    1. If no citations present → BLOCK
+    2. Else if grounding_score >= FACTUAL_PASS_THRESHOLD → PASS
+    3. Else if grounding_score >= SYNTHESIS_PASS_THRESHOLD → SYNTHESIS
+    4. Else → BLOCK
     """
 
-    # ── Gate 0: Hard block on empty or sentinel responses ─────────────────
-    if not answer or answer.strip() == "":
-        return ("BLOCK", "Empty answer returned from language model.")
+    # ── Gate 0: Sentinel check ───────────────────────────────────────────
+    if not answer or "ANSWER_NOT_IN_DOCUMENTS" in answer:
+        return ("BLOCK", "No grounded answer found in uploaded documents.")
 
-    if "ANSWER_NOT_IN_DOCUMENTS" in answer:
-        return ("BLOCK", "Language model indicated answer is not in documents.")
+    # ── Gate 1: Citation Presence (Mandatory) ────────────────────────────
+    if not has_valid_citations(answer):
+        return ("BLOCK", "No direct citations found in answer. All responses must be grounded.")
 
-    # ── Gate 1: Citation presence ──────────────────────────────────────────
-    citation_present = has_valid_citations(answer)
+    # ── Gate 2: Tiered Logic ──────────────────────────────────────────────
+    if grounding_score >= FACTUAL_PASS_THRESHOLD:
+        return ("PASS", f"PASS — Grounded answer (score {grounding_score:.3f})")
 
-    # ── Gate 2: Grounding score threshold ─────────────────────────────────
-    if mode == "factual":
-        grounding_ok = grounding_score >= FACTUAL_PASS_THRESHOLD
+    if grounding_score >= SYNTHESIS_PASS_THRESHOLD:
+        return ("SYNTHESIS", f"SYNTHESIS — Synthesised answer (score {grounding_score:.3f})")
 
-        if citation_present and grounding_ok:
-            return ("PASS", f"PASS — citation present, grounding score {grounding_score:.3f}")
-
-        # Diagnose specifically which gate failed for the BLOCK reason
-        if not citation_present and not grounding_ok:
-            return (
-                "BLOCK",
-                f"No inline citation found AND low grounding score ({grounding_score:.3f} < {FACTUAL_PASS_THRESHOLD}). "
-                "Answer could not be verified against uploaded documents."
-            )
-        if not citation_present:
-            return (
-                "BLOCK",
-                f"No inline citation found in answer (grounding score {grounding_score:.3f} was sufficient). "
-                "Source provenance cannot be confirmed."
-            )
-        # grounding_ok is False
-        return (
-            "BLOCK",
-            f"Low grounding score ({grounding_score:.3f} < {FACTUAL_PASS_THRESHOLD}). "
-            "Answer not sufficiently derived from uploaded documents."
-        )
-
-    elif mode == "synthesis":
-        grounding_ok = grounding_score >= SYNTHESIS_PASS_THRESHOLD
-
-        if citation_present and grounding_ok:
-            return ("SYNTHESIS", f"SYNTHESIS — citation present, grounding score {grounding_score:.3f}")
-
-        if not citation_present and not grounding_ok:
-            return (
-                "BLOCK",
-                f"No inline citation found AND low grounding score ({grounding_score:.3f} < {SYNTHESIS_PASS_THRESHOLD}). "
-                "Answer appears to be from general knowledge only."
-            )
-        if not citation_present:
-            return (
-                "BLOCK",
-                f"No inline citation found in synthesised answer (grounding score {grounding_score:.3f} was sufficient). "
-                "Source provenance cannot be confirmed."
-            )
-        return (
-            "BLOCK",
-            f"Low grounding score ({grounding_score:.3f} < {SYNTHESIS_PASS_THRESHOLD}). "
-            "Synthesised answer not sufficiently derived from uploaded documents."
-        )
-
-    # ── Fallback — unknown mode, block for safety ──────────────────────────
-    return ("BLOCK", f"Unknown gatekeeper mode: {mode}")
+    # ── Gate 3: Final Block ──────────────────────────────────────────────
+    return (
+        "BLOCK",
+        f"Low grounding score ({grounding_score:.3f} < {SYNTHESIS_PASS_THRESHOLD}). "
+        "Answer not sufficiently derived from documents."
+    )

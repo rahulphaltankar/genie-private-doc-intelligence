@@ -339,7 +339,7 @@ def main():
                         log_trace(question, answer, grounding_score, decision, sources)
                         show_answer(answer, sources, decision="PASS",
                                     grounding=grounding_score, confidence=confidence)
-                    elif decision == "BLOCK":
+                    else:
                         # Factual path blocked — try comprehension fallback before giving up
                         all_chunks = st.session_state.chunks
                         step = max(1, len(all_chunks) // 15)
@@ -355,8 +355,8 @@ def main():
                         gs2 = compute_grounding_score(answer2, chunks2_text)
                         dec2, reason2 = run_gatekeeper(answer2, chunks2_text, gs2, mode="synthesis")
                         log_trace(question, answer2, gs2, dec2, srcs2)
-                        if dec2 == "SYNTHESIS":
-                            show_answer(answer2, srcs2, decision="SYNTHESIS", grounding=gs2)
+                        if dec2 in ["PASS", "SYNTHESIS"]:
+                            show_answer(answer2, srcs2, decision=dec2, grounding=gs2)
                         else:
                             show_sme_escalation(reason2, grounding=gs2)
 
@@ -377,9 +377,9 @@ def main():
                     grounding_score = compute_grounding_score(answer, chunks3_text)
                     decision, reason = run_gatekeeper(answer, chunks3_text, grounding_score, mode="synthesis")
 
-                    if decision == "SYNTHESIS":
+                    if decision in ["PASS", "SYNTHESIS"]:
                         log_trace(question, answer, grounding_score, decision, srcs3)
-                        show_answer(answer, srcs3, decision="SYNTHESIS", grounding=grounding_score)
+                        show_answer(answer, srcs3, decision=decision, grounding=grounding_score)
                     else:
                         log_trace(question, answer, grounding_score, decision, srcs3)
                         show_sme_escalation(reason, grounding=grounding_score)
