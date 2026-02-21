@@ -1,177 +1,85 @@
-# 🧞 Genie — Private Document Intelligence Assistant
+# Genie — Citation-Enforced Private Document Intelligence Assistant
 
-> Built from scratch in ~4 hours to prove a simple idea:  
-> Your documents already contain answers. Genie makes them instantly accessible.
+Genie is an enterprise-grade private document intelligence system that provides grounded, citation-enforced answers over proprietary document collections.
 
----
+## Core Capabilities
 
-## 🌐 Live Demo
+- Retrieval-Augmented Generation (RAG)
+- Citation enforcement with Harvard-style references
+- Grounding score validation
+- Gatekeeper decision engine (PASS / SYNTHESIS / BLOCK)
+- Hallucination prevention by design
+- Audit logging for traceability
+- SME escalation when evidence insufficient
 
-**Public App:**  
-https://genie-app-doc-intelligence-8sqvssggb7bwbyrxg6xaq9.streamlit.app/
+## Architecture Overview
 
-**GitHub Repository:**  
-https://github.com/rahulphaltankar/genie-private-doc-intelligence
+```
+User Query
+→ FAISS Retrieval
+→ LLM Generation (Mistral)
+→ Grounding Score Computation
+→ Citation Validation
+→ Gatekeeper Enforcement
+→ Decision Output
+→ Audit Logging
+```
 
----
+## Decision States
 
-## ⚡ What Genie Does
+| Decision | Meaning |
+|---|---|
+| ✅ PASS | Grounded answer with valid inline citations |
+| ⚠️ SYNTHESIS | Document-based synthesis without direct citation |
+| 🚫 BLOCK | Insufficient evidence — SME escalation required |
 
-Genie lets you upload your private documents and ask questions in natural language.
+## Installation
 
-It reads, understands, retrieves evidence, and answers grounded in your documents.
+```bash
+pip install -r requirements.txt
+```
 
-No hallucinated internet answers. Only your knowledge.
+## Environment Setup
 
----
+Create a `.env` file in the project root:
 
-## 🎯 Why This Matters
+```
+MISTRAL_API_KEY=your_api_key_here
+```
 
-Teams waste hours searching through:
+## Run Locally
 
-- Technical documentation  
-- Architecture specs  
-- Research papers  
-- Compliance documents  
-- Internal notes  
+```bash
+streamlit run app.py
+```
 
-Genie reduces that to seconds.
+## Project Structure
 
-This is the foundation layer for private enterprise AI assistants.
+```
+genie/
+├── app.py                  # Main Streamlit application
+├── grounding.py            # Cosine similarity grounding score computation
+├── citation_validator.py   # Harvard citation detection and validation
+├── citation_formatter.py   # Harvard citation formatting
+├── gatekeeper.py           # Dual-enforcement decision engine
+├── trace_logger.py         # Persistent JSONL audit logging
+├── requirements.txt
+├── README.md
+└── .gitignore
+```
 
----
+## Security Model
 
-## 🧠 How It Works (Architecture)
+- Citation-enforced answers — no answer passes without source attribution
+- Grounding score gate — answer must be semantically derived from documents
+- No silent hallucination — every refusal is explicit with reason
+- Full audit trace logging — every decision persisted to `genie_trace_log.jsonl`
+- Explicit SME escalation when evidence is insufficient
 
-User Question
-↓
-Document Upload
-↓
-Text Chunking
-↓
-Embeddings (sentence-transformers)
-↓
-Vector Search (FAISS)
-↓
-Relevant Context Retrieval
-↓
-LLM Generation (Mistral)
-↓
-Answer + Evidence + Confidence
+## Supported File Formats
 
-
----
-
-## 🛠 Tech Stack
-
-**Frontend**
-- Streamlit
-
-**Backend**
-- Python
-
-**LLM**
-- Mistral
-
-**Embeddings**
-- sentence-transformers (MiniLM)
-
-**Vector Database**
-- FAISS
-
-**Document Processing**
-- pypdf
-- python-docx
-
-**Deployment**
-- Streamlit Cloud
-
-**Version Control**
-- Git + GitHub
-
----
-
-## 🚀 Example Use Cases
-
-Engineering:
-> "What does this architecture require?"
-
-Compliance:
-> "Does this design align with regulations?"
-
-Research:
-> "What are the key findings of this paper?"
-
-Product:
-> "What decisions were previously made?"
-
----
-
-## ⚙️ Performance
-
-- Built in: ~4 hours  
-- Response time: ~2–5 seconds  
-- Fully functional prototype  
-- Public deployment ready  
-
----
-
-## 🔒 Privacy
-
-- Documents processed privately  
-- No training on your data  
-- Retrieval-based generation only  
-
-Can be deployed locally or privately.
-
----
-
-## 📈 Future Roadmap
-
-- Chat memory  
-- Evidence verification layer  
-- Enterprise connectors (Jira, Confluence, GitHub)  
-- On-prem deployment  
-- Multi-modal support  
-
----
-
-## 👤 Author
-
-Rahul Phaltankar
-
-AI Governance • AI Systems • Digital Transformation
-
-GitHub:  
-https://github.com/rahulphaltankar
-
-LinkedIn:  
-https://www.linkedin.com/in/rahulphaltankar
-
----
-
-## 💡 Why This Exists
-
-Knowledge exists inside documents, but remains inaccessible in real time.
-
-Genie proves that private, trustworthy AI assistants can be built rapidly and deployed immediately.
-
-This prototype validates that future.
-
----
-
-## ⭐ Status
-
-Working prototype  
-Publicly deployed  
-Actively evolving
-
----
+PDF, DOCX, TXT (up to 3 files, 500MB per file)
 
 ## License
 
-This project is licensed under the MIT License.
-
-See the LICENSE file for details.
-
-MIT License © 2026 Rahul Phaltankar
+MIT License

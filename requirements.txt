@@ -1,8 +1,10 @@
 streamlit
 sentence-transformers
 faiss-cpu
-pypdf
-python-docx
+numpy
 requests
 python-dotenv
+pypdf
+python-docx
 reportlab
+torch
