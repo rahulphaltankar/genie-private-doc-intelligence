@@ -4,6 +4,19 @@ All notable changes to Genie are documented here.
 
 ---
 
+## [v2.1.0] — 2026-02-21 — Strict Enforcement Update
+
+### Added
+- **Unified Enterprise Decision Model** — Refactored `run_gatekeeper` to prioritize citation presence as a mandatory gate.
+- **Hierarchical Outcomes** — Implemented tiered outcome selection:
+  - If no citations → `BLOCK`
+  - Score ≥ 0.40 → `PASS`
+  - Score ≥ 0.25 → `SYNTHESIS`
+  - Score < 0.25 → `BLOCK`
+- **Exhaustive Fallback** — Updated `app.py` to ensure all non-PASS factual results trigger a comprehension fallback attempt before final blocking.
+
+---
+
 ## [v2.0.0] — 2026-02-21 — Hackathon 2: Trust Enforcement Layer
 
 ### Overview
