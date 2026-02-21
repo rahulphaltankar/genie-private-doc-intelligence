@@ -1,398 +1,349 @@
 import streamlit as st
-from pypdf import PdfReader
-from docx import Document
+import os
+import json
+import io
+import re
+import numpy as np
+from dotenv import load_dotenv
 from sentence_transformers import SentenceTransformer
 import faiss
-import numpy as np
-import requests
-import os
-from dotenv import load_dotenv
-import json
-from reportlab.pdfgen import canvas
-from reportlab.lib.pagesizes import letter
-import io
+import nltk
+
+# Genie Modules
+from ingestion_pipeline import process_uploaded_files
+from bm25_index import BM25Index
+from hybrid_retriever import hybrid_search
+from reranker import rerank
+from quiz_generator import generate_quiz
+from mode_router import detect_intent
 from citation_formatter import format_harvard_citation
 from grounding import compute_grounding_score
-from citation_validator import has_valid_citations
 from gatekeeper import run_gatekeeper
 from trace_logger import log_trace
 
+# UI Helpers
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import letter
+import requests
 
 # Load environment variables
 load_dotenv()
 
+# Pre-load NLTK
+try:
+    nltk.download('punkt', quiet=True)
+    nltk.download('punkt_tab', quiet=True)
+except Exception:
+    pass
+
 # Configure page
-st.set_page_config(page_title="Genie — Private Document Intelligence Assistant", layout="wide")
+st.set_page_config(
+    page_title="Genie AI",
+    page_icon="🧞",
+    layout="wide",
+    initial_sidebar_state="collapsed"
+)
 
-def get_pdf_text(pdf_file):
-    text = ""
-    pdf_reader = PdfReader(pdf_file)
-    for page in pdf_reader.pages:
-        text += page.extract_text()
-    return text
+# --- Antigravity-Style Simplistic Aesthetic ---
+st.markdown("""
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
 
-def get_docx_text(docx_file):
-    doc = Document(docx_file)
-    return "\n".join([para.text for para in doc.paragraphs])
-
-def get_txt_text(txt_file):
-    return str(txt_file.read(), "utf-8")
-
-def get_text_chunks(text):
-    # Simple chunking by character count with overlap
-    chunk_size = 1000
-    chunk_overlap = 200
-    chunks = []
-    for i in range(0, len(text), chunk_size - chunk_overlap):
-        chunks.append(text[i:i + chunk_size])
-    return chunks
-
-
-def call_mistral_api(prompt, context):
-    """Strict factual grounding — for specific questions. Refuses to answer from prior knowledge."""
-    api_key = os.getenv("MISTRAL_API_KEY")
-    if not api_key:
-        return "Error: MISTRAL_API_KEY not found in environment variables."
-
-    url = "https://api.mistral.ai/v1/chat/completions"
-    headers = {
-        "Authorization": f"Bearer {api_key}",
-        "Content-Type": "application/json"
+    .stApp {
+        background-color: #000000;
+        color: #ffffff;
+        font-family: 'Inter', sans-serif;
+    }
+    
+    .block-container {
+        padding-top: 2rem;
+        max-width: 900px;
     }
 
-    full_prompt = f"""You are a strict document question-answering assistant.
-You are given context extracted from uploaded documents. Your job is to answer the user's question ONLY using information explicitly present in the context below.
+    /* Branding - Clean & High Contrast */
+    .genie-header {
+        font-size: 2.2rem;
+        font-weight: 500;
+        text-align: left;
+        color: #ffffff;
+        margin-bottom: 0.2rem;
+        letter-spacing: -0.04rem;
+    }
+    .genie-sub {
+        color: #666666;
+        font-size: 0.95rem;
+        margin-bottom: 2.5rem;
+    }
 
-STRICT RULES:
-- Do NOT use any prior knowledge or information outside the provided context.
-- If the context does not contain enough information to answer the question, you MUST respond with exactly: "ANSWER_NOT_IN_DOCUMENTS"
-- Do NOT speculate, infer, or provide a general answer.
-- Do NOT acknowledge that you could answer from general knowledge.
-- You MUST cite the source filename inline in your answer using this format: (filename, n.d.)
-  Example: The interest rate is 5.25% (policy.pdf, n.d.)
-- If you cannot cite a source, respond with: "ANSWER_NOT_IN_DOCUMENTS"
+    /* Step Containers - Pure Dark */
+    .step-box {
+        background-color: #000000;
+        border: 1px solid #1a1a1a;
+        border-radius: 8px;
+        padding: 30px;
+        margin-bottom: 1.5rem;
+    }
 
-Context:
----------------------
-{context}
----------------------
+    /* High-Legibility Form Elements */
+    .stFileUploader section {
+        background-color: #050505 !important;
+        border: 1px solid #1a1a1a !important;
+        color: #ffffff !important;
+    }
+    /* Antigravity Buttons (Dark Grey, White Text) */
+    [data-testid='stFileUploaderDropzone'] button {
+        color: #ffffff !important;
+        background-color: #222222 !important;
+        border: 1px solid #333333 !important;
+        border-radius: 6px !important;
+    }
+    [data-testid='stFileUploaderDropzone'] span {
+        color: #ffffff !important;
+    }
 
-Question: {prompt}
-Answer (cite sources inline as (filename, n.d.), or ANSWER_NOT_IN_DOCUMENTS):"""
+    /* Message Bubbles - Antigravity Consistency */
+    .stChatMessage {
+        background-color: #000000 !important;
+        padding: 1.2rem 0 !important;
+        border-bottom: 1px solid #111111 !important;
+    }
+    .stChatMessage div[data-testid="stMarkdownContainer"] p {
+        color: #ffffff !important;
+        font-size: 1rem !important;
+    }
 
+    /* Primary Assistant Color Bubble */
+    .stChatMessage [data-testid="stChatMessageAvatarAssistant"] {
+        background-color: #333333 !important;
+    }
+
+    /* Custom Buttons - Pure Antigravity (Dark, White Text) */
+    .stButton > button {
+        background-color: #222222 !important;
+        color: #ffffff !important;
+        border: 1px solid #333333 !important;
+        border-radius: 6px !important;
+        font-weight: 500 !important;
+        padding: 6px 16px !important;
+    }
+    .stButton > button p {
+        color: #ffffff !important;
+    }
+    .stButton > button:hover {
+        background-color: #333333 !important;
+        border-color: #444444 !important;
+    }
+
+    /* Global Input - Total Black (Forced Sticky Footer) */
+    div[data-testid="stChatInput"] {
+        background-color: #000000 !important;
+        padding-bottom: 2rem !important;
+    }
+    div[data-testid="stChatInput"] textarea {
+        background-color: #000000 !important;
+        color: #ffffff !important;
+        border: 1px solid #1a1a1a !important;
+    }
+    /* Hide the light-colored streamlit footer bar background */
+    [data-testid="stBottomBlockContainer"] {
+        background-color: #000000 !important;
+        border-top: 1px solid #111111 !important;
+    }
+    
+    /* Knowledge Bar */
+    .knowledge-bar {
+        background-color: #000000;
+        border-bottom: 1px solid #111111;
+        padding: 8px 0;
+        display: flex;
+        gap: 8px;
+    }
+    .knowledge-pill {
+        background-color: #111111;
+        color: #888888;
+        padding: 3px 10px;
+        border-radius: 4px;
+        font-size: 0.7rem;
+        border: 1px solid #1a1a1a;
+    }
+
+    /* Reset default st content spacing */
+    .stMarkdown p { color: #ffffff !important; }
+    
+    header, footer {visibility: hidden;}
+</style>
+""", unsafe_allow_html=True)
+
+@st.cache_resource
+def load_models():
+    return SentenceTransformer('all-MiniLM-L6-v2')
+
+def call_mistral_api(query, context):
+    api_key = os.getenv("MISTRAL_API_KEY")
+    url = "https://api.mistral.ai/v1/chat/completions"
+    headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
+    
+    system_prompt = (
+        "You are Genie, a precision AI assistant. "
+        "Use ONLY the provided context. If the fact is not in the context, say you cannot find it.\n"
+        "FORMATTING:\n"
+        "- Use clear headings and lists.\n"
+        "- Use Markdown tables if requested.\n"
+        "- Use LaTeX ($$ ... $$) for all math.\n"
+        "- ALWAYS include inline citations like (Filename, Page X).\n"
+    )
+    
     data = {
         "model": "mistral-tiny",
-        "messages": [{"role": "user", "content": full_prompt}]
+        "messages": [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": f"CONTEXT:\n{context}\n\nUSER INSTRUCTION: {query}"}
+        ]
     }
-
+    
     try:
         response = requests.post(url, headers=headers, json=data)
         response.raise_for_status()
         return response.json()['choices'][0]['message']['content']
     except Exception as e:
-        return f"Error calling Mistral API: {str(e)}"
+        return f"Genie Error: {str(e)}"
 
-def call_mistral_comprehension(prompt, context):
-    """Permissive comprehension mode — for summarisation, explanation, and synthesis tasks."""
-    api_key = os.getenv("MISTRAL_API_KEY")
-    if not api_key:
-        return "Error: MISTRAL_API_KEY not found in environment variables."
-
-    url = "https://api.mistral.ai/v1/chat/completions"
-    headers = {
-        "Authorization": f"Bearer {api_key}",
-        "Content-Type": "application/json"
-    }
-
-    full_prompt = f"""You are an intelligent document assistant. You have been given content extracted from one or more uploaded documents.
-Your task is to read the content carefully and respond to the user's request using the document content as your primary source.
-
-You may synthesise, infer, and summarise from the content. Be concise, clear, and structured.
-
-CITATION RULE:
-- You MUST reference the source filenames inline in your response using this format: (filename, n.d.)
-  Example: The document discusses transformer architecture (attention_is_all_you_need.pdf, n.d.)
-- Only reference sources that appear in the document content below.
-- Do not fabricate source names.
-
-Document content:
----------------------
-{context}
----------------------
-
-User request: {prompt}
-Response (cite sources inline as (filename, n.d.)):"""
-
-    data = {
-        "model": "mistral-tiny",
-        "messages": [{"role": "user", "content": full_prompt}]
-    }
-
-    try:
-        response = requests.post(url, headers=headers, json=data)
-        response.raise_for_status()
-        return response.json()['choices'][0]['message']['content']
-    except Exception as e:
-        return f"Error calling Mistral API: {str(e)}"
-
-
-def create_pdf(text):
-    buffer = io.BytesIO()
-    c = canvas.Canvas(buffer, pagesize=letter)
-    width, height = letter
-    y = height - 40
-    c.drawString(30, y, "Genie Answer Export")
-    y -= 40
-    
-    # Simple text wrapping
-    text_object = c.beginText(30, y)
-    text_object.setFont("Helvetica", 12)
-    
-    # Split by newlines first
-    lines = text.split('\n')
-    for line in lines:
-        # Simple wrapping by length (could be improved)
-        while len(line) > 90:
-            text_object.textLine(line[:90])
-            line = line[90:]
-        text_object.textLine(line)
-        
-    c.drawText(text_object)
-    c.save()
-    buffer.seek(0)
-    return buffer
+def extract_number(text):
+    """Dynamic detection of question counts (e.g., '10 MCQs' -> 10)"""
+    nums = re.findall(r'\d+', text)
+    if nums:
+        return int(nums[0])
+    return 5 # fallback
 
 def main():
-    st.title("Genie — Private Document Intelligence Assistant")
-
-    # Initialize session state for conversation
+    embedding_model = load_models()
+    
     if "messages" not in st.session_state:
         st.session_state.messages = []
-    if "vector_store" not in st.session_state:
-        st.session_state.vector_store = None
-    if "chunks" not in st.session_state:
-        st.session_state.chunks = []
+    if "indexed" not in st.session_state:
+        st.session_state.indexed = False
+    if "stage" not in st.session_state:
+        st.session_state.stage = "upload"
 
-    with st.sidebar:
-        st.subheader("Your Documents")
-        uploaded_files = st.file_uploader(
-            "Upload up to 3 files (PDF, DOCX, TXT)", 
-            type=["pdf", "docx", "txt"], 
-            accept_multiple_files=True
-        )
+    # --- Header ---
+    if st.session_state.stage != "chat":
+        st.markdown('<div class="genie-header">genie</div>', unsafe_allow_html=True)
+        st.markdown('<div class="genie-sub">Simplistic, premium document intelligence.</div>', unsafe_allow_html=True)
 
-        if st.button("Process Documents"):
-            if not uploaded_files:
-                st.warning("Please upload files first.")
-            elif len(uploaded_files) > 3:
-                st.error("Please upload maximum 3 files.")
-            else:
-                with st.spinner("Processing documents..."):
-                    all_text = ""
-                    chunks = []
-                    
-                    for file in uploaded_files:
-                        if file.type == "application/pdf":
-                            text = get_pdf_text(file)
-                        elif file.type == "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
-                            text = get_docx_text(file)
-                        else: # txt
-                            text = get_txt_text(file)
-                        
-                        file_chunks = get_text_chunks(text)
-                        # Store source with chunk -> (chunk_text, source_filename)
-                        chunks.extend([(c, file.name) for c in file_chunks])
-                    
+    # --- Step 1: Upload ---
+    if st.session_state.stage == "upload":
+        st.markdown('<div class="step-box">', unsafe_allow_html=True)
+        st.markdown("### Add Knowledge")
+        uploaded_files = st.file_uploader("", accept_multiple_files=True, label_visibility="collapsed")
+        if uploaded_files:
+            st.session_state.uploader = uploaded_files
+            if st.button("Continue to Indexing"):
+                st.session_state.stage = "indexing"
+                st.rerun()
+        st.markdown('</div>', unsafe_allow_html=True)
+
+    # --- Step 2: Index ---
+    elif st.session_state.stage == "indexing":
+        st.markdown('<div class="step-box">', unsafe_allow_html=True)
+        st.markdown("### Analyze Patterns")
+        st.write(f"Knowledge Source: {len(st.session_state.uploader)} documents successfully staged.")
+        
+        if st.button("Build Assistant Brain"):
+            with st.spinner("Processing..."):
+                try:
+                    chunks = process_uploaded_files(st.session_state.uploader)
                     st.session_state.chunks = chunks
-                    
-                    # Create Embeddings
-                    model = SentenceTransformer('all-MiniLM-L6-v2')
-                    # We just need the text for embedding
-                    chunk_texts = [c[0] for c in chunks]
-                    embeddings = model.encode(chunk_texts)
-                    
-                    # Create FAISS index
-                    dimension = embeddings.shape[1]
-                    index = faiss.IndexFlatL2(dimension)
+                    chunk_texts = [c.text for c in chunks]
+                    embeddings = embedding_model.encode(chunk_texts)
+                    st.session_state.embeddings = embeddings
+                    index = faiss.IndexFlatL2(embeddings.shape[1])
                     index.add(np.array(embeddings).astype('float32'))
-                    
                     st.session_state.vector_store = index
-                    # Storing model in session state might use memory, but needed for query encoding
-                    # Alternatively we can reload model. For now reload model to save state size or keep it?
-                    # Streamlit reloads script on interaction. Model load is expensive.
-                    # Better to cache the model resource.
                     
-                    st.success("Documents processed successfully!")
+                    # Initialize BM25 index (Hackathon-3 Step 4)
+                    from bm25_index import BM25Index
+                    # Convert ChunkMeta to (text, filename) tuples for BM25
+                    bm25_chunks = [(c.text, c.filename) for c in chunks]
+                    st.session_state.bm25_index = BM25Index(bm25_chunks)
+                    
+                    st.session_state.indexed = True
+                    st.session_state.stage = "chat"
+                    st.rerun()
+                except Exception as e:
+                    st.error(f"Error: {str(e)}")
+        
+        if st.button("← Modify Selection"):
+            st.session_state.stage = "upload"
+            st.rerun()
+        st.markdown('</div>', unsafe_allow_html=True)
 
-    # Main Chat Interface
-    question = st.text_input("Ask a question about your documents:")
+    # --- Step 3: Chat ---
+    elif st.session_state.stage == "chat":
+        # Compact top header with Knowledge Bar
+        cols = st.columns([0.8, 0.2])
+        with cols[0]:
+            st.markdown('**genie** · active')
+            # Knowledge Bar: Always visible pills
+            files = [f.name for f in st.session_state.uploader]
+            kb_html = '<div class="knowledge-bar">' + "".join([f'<div class="knowledge-pill">📄 {name}</div>' for name in files]) + '</div>'
+            st.markdown(kb_html, unsafe_allow_html=True)
+        with cols[1]:
+            if st.button("Reset", use_container_width=True):
+                st.session_state.clear()
+                st.rerun()
 
-    if question:
-        if st.session_state.vector_store is None:
-            st.error("Please process documents first.")
-        else:
-            with st.spinner("Thinking..."):
-                from citation_formatter import format_harvard_citation
+        st.divider()
 
-                model = SentenceTransformer('all-MiniLM-L6-v2')
-                question_embedding = model.encode([question])
+        # Chat view
+        for msg in st.session_state.messages:
+            with st.chat_message(msg["role"]):
+                st.write(msg["content"])
 
-                # Always do FAISS search first
-                D, I = st.session_state.vector_store.search(
-                    np.array(question_embedding).astype('float32'), k=5
-                )
-
-                FACTUAL_THRESHOLD = 1.2    # Below this -> precise factual match found
-                SCOPE_THRESHOLD = 2.0      # Above this -> truly out of scope (even for synthesis)
-                min_distance = float(D[0][0])
-
-                sources: set = set()
-                context_text: str = ""
-                answer_with_citations: str = ""
-
-                def show_answer(ans: str, srcs: set, decision: str,
-                               grounding: float = -1.0, confidence: float = -1.0) -> None:
-                    """
-                    Render the answer with full provenance transparency.
-                    decision: 'PASS' | 'SYNTHESIS'
-                    """
-                    is_grounded = (decision == "PASS")
-
-                    if is_grounded:
-                        harvard = " ".join([format_harvard_citation(s) for s in srcs])
-                        combined = f"{ans}\n\nSources: {harvard}"
-                        badge = "✅ GROUNDED"
-                        st.success(f"{badge} — Answer verified against uploaded documents.")
-                    else:
-                        combined = ans
-                        badge = "⚠️ SYNTHESIS"
-                        st.warning(f"{badge} — Answer synthesised from document content. "
-                                   "No direct source citation available.")
-
-                    st.write("### Answer")
-                    st.write(combined)
-                    st.write("---")
-
-                    # Always show provenance state
-                    meta_cols = st.columns(3)
-                    with meta_cols[0]:
-                        st.write(f"**Decision:** {badge}")
-                    with meta_cols[1]:
-                        if is_grounded and confidence >= 0:
-                            st.write(f"**Confidence:** {confidence:.1f}%")
-                        else:
-                            st.write("**Confidence:** LOW")
-                    with meta_cols[2]:
-                        if is_grounded:
-                            st.write(f"**Grounding:** {grounding:.3f}")
-                            st.write(f"**Sources:** {', '.join(format_harvard_citation(s) for s in srcs)}")
-                        else:
-                            st.write(f"**Grounding:** {grounding:.3f}")
-                            st.write("**Sources:** No direct document citation")
-
-                    st.write("### Export Answer")
-                    c1, c2, c3 = st.columns(3)
-                    with c1:
-                        st.download_button("Download TXT", data=combined,
-                                           file_name="answer.txt", mime="text/plain")
-                    with c2:
-                        jd = json.dumps({
-                            "question": question,
-                            "answer": ans,
-                            "decision": decision,
-                            "grounding_score": round(grounding, 3),
-                            "sources": list(srcs) if is_grounded else []
-                        }, indent=2)
-                        st.download_button("Download JSON", data=jd,
-                                           file_name="answer.json", mime="application/json")
-                    with c3:
-                        st.download_button("Download PDF", data=create_pdf(combined),
-                                           file_name="answer.pdf", mime="application/pdf")
-
-                def show_sme_escalation(reason: str, grounding: float = -1.0) -> None:
-                    """Render the SME escalation message with provenance state."""
-                    st.error("🚫 BLOCK — Answer cannot be verified against uploaded documents.")
-                    st.warning(f"⚠️ {reason}")
-                    if grounding >= 0:
-                        st.caption(f"Grounding score: {grounding:.3f}")
-                    st.info(
-                        "**Next step:** Please consult the appropriate **Subject Matter Expert (SME)** "
-                        "or upload additional authoritative documents related to this topic."
+        if st.session_state.messages and st.session_state.messages[-1]["role"] == "user":
+            user_msg = st.session_state.messages[-1]["content"]
+            with st.chat_message("assistant"):
+                with st.spinner(""):
+                    intent = detect_intent(user_msg)
+                    
+                    # Step 5: Hybrid Search replacement
+                    from hybrid_retriever import hybrid_search
+                    indices = hybrid_search(
+                        query=user_msg,
+                        vector_store=st.session_state.vector_store,
+                        encoder_model=embedding_model,
+                        bm25_index=st.session_state.bm25_index,
+                        chunks=st.session_state.chunks,
+                        top_k=15 if intent == "quiz" else 5
                     )
-
-                # ── PATH A: Good factual match — strict grounding ──────────────
-                if min_distance <= FACTUAL_THRESHOLD:
-                    relevant_chunks_text = []
-                    for i_chunk, idx in enumerate(I[0]):
-                        if idx < len(st.session_state.chunks) and float(D[0][i_chunk]) <= FACTUAL_THRESHOLD * 1.5:
-                            chunk_text, source = st.session_state.chunks[idx]
-                            sources.add(str(source))
-                            context_text = context_text + f"\nSource ({source}): {chunk_text}\n"
-                            relevant_chunks_text.append(str(chunk_text))
-
-                    answer = call_mistral_api(question, context_text)
-                    grounding_score = compute_grounding_score(answer, relevant_chunks_text)
-                    confidence = round(grounding_score * 100, 1)  # cosine similarity as %
-                    decision, reason = run_gatekeeper(answer, relevant_chunks_text, grounding_score, mode="factual")
-
-                    if decision == "PASS":
-                        log_trace(question, answer, grounding_score, decision, sources)
-                        show_answer(answer, sources, decision="PASS",
-                                    grounding=grounding_score, confidence=confidence)
+                    
+                    # Map indices back to ChunkMeta objects
+                    top = [st.session_state.chunks[i] for i in indices]
+                    
+                    if intent == "quiz":
+                        num_q = extract_number(user_msg)
+                        quiz = generate_quiz(top, num_questions=num_q)
+                        ans = f"### 🧞 Quiz Generated ({len(quiz.get('items', []))} questions)\n\n"
+                        for i, q in enumerate(quiz.get('items', [])):
+                            opts = [str(o) if not isinstance(o, dict) else str(list(o.values())[0]) for o in q.get('options', [])]
+                            ans += f"**{i+1}. {q['question']}**\n- " + "\n- ".join(opts) + f"\n*Correct Answer: {q['answer']}*\n\n"
                     else:
-                        # Factual path blocked — try comprehension fallback before giving up
-                        all_chunks = st.session_state.chunks
-                        step = max(1, len(all_chunks) // 15)
-                        sampled = all_chunks[::step][:15]
-                        ctx2: str = ""
-                        srcs2: set = set()
-                        chunks2_text = []
-                        for ct, src in sampled:
-                            srcs2.add(str(src))
-                            ctx2 = ctx2 + f"\nSource ({src}): {ct}\n"
-                            chunks2_text.append(str(ct))
-                        answer2 = call_mistral_comprehension(question, ctx2)
-                        gs2 = compute_grounding_score(answer2, chunks2_text)
-                        dec2, reason2 = run_gatekeeper(answer2, chunks2_text, gs2, mode="synthesis")
-                        log_trace(question, answer2, gs2, dec2, srcs2)
-                        if dec2 in ["PASS", "SYNTHESIS"]:
-                            show_answer(answer2, srcs2, decision=dec2, grounding=gs2)
+                        top = top[:5]
+                        ctx = "\n".join([f"Source ({c.filename}, Page {c.page}): {c.text}" for c in top])
+                        raw_ans = call_mistral_api(user_msg, ctx)
+                        gs = compute_grounding_score(raw_ans, [c.text for c in top])
+                        decision, _ = run_gatekeeper(raw_ans, [c.text for c in top], gs)
+                        
+                        if decision == "BLOCK":
+                            ans = "I'm sorry, I cannot verify that information in your documents."
                         else:
-                            show_sme_escalation(reason2, grounding=gs2)
+                            ans = raw_ans
+                    
+                    st.session_state.messages.append({"role": "assistant", "content": ans})
+                    st.rerun()
 
-                # ── PATH B: No close match — auto comprehension fallback ────────
-                elif min_distance <= SCOPE_THRESHOLD:
-                    all_chunks = st.session_state.chunks
-                    step = max(1, len(all_chunks) // 15)
-                    sampled = all_chunks[::step][:15]
-                    srcs3: set = set()
-                    ctx3: str = ""
-                    chunks3_text = []
-                    for ct, src in sampled:
-                        srcs3.add(str(src))
-                        ctx3 = ctx3 + f"\nSource ({src}): {ct}\n"
-                        chunks3_text.append(str(ct))
-
-                    answer = call_mistral_comprehension(question, ctx3)
-                    grounding_score = compute_grounding_score(answer, chunks3_text)
-                    decision, reason = run_gatekeeper(answer, chunks3_text, grounding_score, mode="synthesis")
-
-                    if decision in ["PASS", "SYNTHESIS"]:
-                        log_trace(question, answer, grounding_score, decision, srcs3)
-                        show_answer(answer, srcs3, decision=decision, grounding=grounding_score)
-                    else:
-                        log_trace(question, answer, grounding_score, decision, srcs3)
-                        show_sme_escalation(reason, grounding=grounding_score)
-
-                # ── PATH C: Truly out of scope (very high distance) ───────────
-                else:
-                    log_trace(question, "", -1.0, "BLOCK", set())
-                    show_sme_escalation(
-                        "This question doesn't appear to be related to your uploaded documents."
-                    )
-
-
+        if prompt := st.chat_input("Ask about your documents..."):
+            st.session_state.messages.append({"role": "user", "content": prompt})
+            st.rerun()
 
 if __name__ == "__main__":
     main()
-

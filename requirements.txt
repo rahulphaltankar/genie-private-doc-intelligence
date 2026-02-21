@@ -8,3 +8,5 @@ pypdf
 python-docx
 reportlab
 torch
+rank_bm25
+nltk

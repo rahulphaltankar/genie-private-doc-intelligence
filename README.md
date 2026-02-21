@@ -1,27 +1,27 @@
-# Genie — Citation-Enforced Private Document Intelligence Assistant
+# Genie AI — Premium Private Document Intelligence
 
-Genie is an enterprise-grade private document intelligence system that provides grounded, citation-enforced answers over proprietary document collections.
+Genie AI is a production-grade private document intelligence assistant that handles complex document tasks with strict grounding and premium aesthetics.
 
-## Core Capabilities
+## Key Capabilities
 
-- Retrieval-Augmented Generation (RAG)
-- Citation enforcement with Harvard-style references
-- Grounding score validation
-- Gatekeeper decision engine (PASS / SYNTHESIS / BLOCK)
-- Hallucination prevention by design
-- Audit logging for traceability
-- SME escalation when evidence insufficient
+- **Genie Wizard UX** — Intuitive sequential flow: Upload → Index → Chat
+- **Universal Assistant** — Flexible task following (Summaries, Tables, Math, QA)
+- **Production Retrieval** — Hybrid Search (FAISS + BM25) + Cross-Encoder Reranking
+- **Rich Rendering** — Native support for LaTeX math and Markdown tables
+- **Citation Enforcement** — Harvard-style references with page numbers
+- **Grounding & Security** — Mandatory score validation and Audit logging
 
 ## Architecture Overview
 
 ```
-User Query
-→ FAISS Retrieval
-→ LLM Generation (Mistral)
-→ Grounding Score Computation
-→ Citation Validation
-→ Gatekeeper Enforcement
-→ Decision Output
+User Instruction
+→ Intent Detection (Universal vs. Specialized)
+→ Hybrid Retrieval (FAISS + BM25)
+→ Cross-Encoder Reranking
+→ Instruction Execution (Mistral-7B Class)
+→ Grounding Validation
+→ Gatekeeper Decision
+→ Rich UI Rendering (Table/Math)
 → Audit Logging
 ```
 
@@ -57,28 +57,35 @@ streamlit run app.py
 
 ```
 genie/
-├── app.py                  # Main Streamlit application
-├── grounding.py            # Cosine similarity grounding score computation
-├── citation_validator.py   # Harvard citation detection and validation
-├── citation_formatter.py   # Harvard citation formatting
-├── gatekeeper.py           # Dual-enforcement decision engine
-├── trace_logger.py         # Persistent JSONL audit logging
+├── app.py                  # Main Streamlit application (Redesigned)
+├── ingestion_pipeline.py    # Multi-format ingestion with page preservation
+├── chunker.py               # Semantic page-aware chunking
+├── hybrid_retriever.py      # Vector + BM25 merging logic
+├── bm25_index.py            # Keyword search index
+├── reranker.py              # Cross-Encoder scoring
+├── mode_router.py           # Task intent detection
+├── quiz_generator.py        # Specialized MCQ generation
+├── grounding.py             # Grounding score computation
+├── citation_validator.py    # Citation detection
+├── gatekeeper.py            # Dual-enforcement decision engine
+├── trace_logger.py          # Persistent audit logging
 ├── requirements.txt
 ├── README.md
+├── CHANGELOG.md
 └── .gitignore
 ```
 
 ## Security Model
 
-- Citation-enforced answers — no answer passes without source attribution
-- Grounding score gate — answer must be semantically derived from documents
-- No silent hallucination — every refusal is explicit with reason
-- Full audit trace logging — every decision persisted to `genie_trace_log.jsonl`
-- Explicit SME escalation when evidence is insufficient
+- **Citation-Enforced Answers** — No answer passes without source attribution
+- **Grounding Gate** — Answer must be semantically derived from documents
+- **No Silent Hallucination** — Refusals are explicit with reason
+- **Audit Trace Logging** — Every decision persisted to `genie_trace_log.jsonl`
+- **Zero-Trust UI** — Provenance and results are always distinct
 
 ## Supported File Formats
 
-PDF, DOCX, TXT (up to 3 files, 500MB per file)
+PDF, DOCX, TXT.
 
 ## License
 

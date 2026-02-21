@@ -4,6 +4,26 @@ All notable changes to Genie are documented here.
 
 ---
 
+## [v3.0.0] — 2026-02-21 — Hackathon 3: The Universal Expansion
+
+### Added
+- **Universal Assistant Mode** — Genie now follows flexible instructions (Summarize, Table, Solve Math) using powerful system prompting.
+- **Sequential Genie Wizard** — Redesigned UI with a 3-stage flow (Upload → Index → Chat).
+- **Hybrid Search Engine** — Merged Vector (FAISS) and Keyword (BM25) search for robust retrieval.
+- **Cross-Encoder Reranking** — Precision candidate refinement using MS-Marco MiniLM.
+- **Rich Rendering** — Native LaTeX math support and Markdown table rendering in the chat view.
+- **Page-Aware Ingestion** — Citations now include specific page numbers for enhanced auditability.
+
+### Improved
+- **Premium Aesthetics** — Vibrant Purple/Magenta theme with radial gradients and improved desktop sizing.
+- **Intent Router** — Transitioned from rigid mode-switching to flexible task augmentation.
+
+### Fixed
+- **NLTK `punkt_tab` Error** — Resolved runtime dependency issue for sentence splitting.
+- **Quiz `TypeError`** — Added robust sanitization for MCQ options parsing.
+
+---
+
 ## [v2.1.0] — 2026-02-21 — Strict Enforcement Update
 
 ### Added
