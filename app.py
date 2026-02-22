@@ -115,7 +115,14 @@ st.markdown("""
     }
     .stChatMessage div[data-testid="stMarkdownContainer"] p,
     .stChatMessage div[data-testid="stMarkdownContainer"] li,
-    .stChatMessage div[data-testid="stMarkdownContainer"] span {
+    .stChatMessage div[data-testid="stMarkdownContainer"] span,
+    .stChatMessage div[data-testid="stMarkdownContainer"] table,
+    .stChatMessage div[data-testid="stMarkdownContainer"] th,
+    .stChatMessage div[data-testid="stMarkdownContainer"] td,
+    .stChatMessage div[data-testid="stMarkdownContainer"] strong,
+    .stChatMessage div[data-testid="stMarkdownContainer"] b,
+    .stChatMessage div[data-testid="stMarkdownContainer"] code,
+    .stChatMessage div[data-testid="stMarkdownContainer"] pre {
         color: #ffffff !important;
         font-size: 1rem !important;
     }
@@ -308,9 +315,60 @@ def main():
         st.divider()
 
         # Chat view
-        for msg in st.session_state.messages:
+        for idx, msg in enumerate(st.session_state.messages):
             with st.chat_message(msg["role"]):
-                st.write(msg["content"])
+                st.markdown(msg["content"], unsafe_allow_html=True)
+                
+                # Add download buttons for assistant messages
+                if msg["role"] == "assistant" and msg["content"] and "Error during quiz generation" not in msg["content"]:
+                    dl_cols = st.columns([0.15, 0.15, 0.7])
+                    with dl_cols[0]:
+                        st.download_button(
+                            label="⬇️ Markdown",
+                            data=msg["content"],
+                            file_name=f"genie_response_{idx}.md",
+                            mime="text/markdown",
+                            key=f"dl_md_{idx}"
+                        )
+                    with dl_cols[1]:
+                        # Generate simple PDF bytes
+                        pdf_buffer = io.BytesIO()
+                        c = canvas.Canvas(pdf_buffer, pagesize=letter)
+                        c.setFont("Helvetica", 10)
+                        
+                        # Very basic word wrap for PDF
+                        text = msg["content"].replace('\n\n', '\n')
+                        lines = text.split('\n')
+                        y = 750
+                        for line in lines:
+                            # basic chunking for long lines
+                            words = line.split(' ')
+                            current_line = ""
+                            for word in words:
+                                if len(current_line) + len(word) > 90:
+                                    c.drawString(50, y, current_line)
+                                    y -= 15
+                                    current_line = word + " "
+                                else:
+                                    current_line += word + " "
+                            if current_line:
+                                c.drawString(50, y, current_line)
+                                y -= 15
+                                
+                            if y < 50:
+                                c.showPage()
+                                c.setFont("Helvetica", 10)
+                                y = 750
+                        c.save()
+                        pdf_bytes = pdf_buffer.getvalue()
+                        
+                        st.download_button(
+                            label="⬇️ PDF",
+                            data=pdf_bytes,
+                            file_name=f"genie_response_{idx}.pdf",
+                            mime="application/pdf",
+                            key=f"dl_pdf_{idx}"
+                        )
 
         if st.session_state.messages and st.session_state.messages[-1]["role"] == "user":
             user_msg = st.session_state.messages[-1]["content"]
