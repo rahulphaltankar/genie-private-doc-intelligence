@@ -113,7 +113,9 @@ st.markdown("""
         padding: 1.2rem 0 !important;
         border-bottom: 1px solid #111111 !important;
     }
-    .stChatMessage div[data-testid="stMarkdownContainer"] p {
+    .stChatMessage div[data-testid="stMarkdownContainer"] p,
+    .stChatMessage div[data-testid="stMarkdownContainer"] li,
+    .stChatMessage div[data-testid="stMarkdownContainer"] span {
         color: #ffffff !important;
         font-size: 1rem !important;
     }
@@ -149,6 +151,11 @@ st.markdown("""
         background-color: #000000 !important;
         color: #ffffff !important;
         border: 1px solid #1a1a1a !important;
+        caret-color: #ffffff !important;
+    }
+    div[data-testid="stChatInput"] textarea::placeholder {
+        color: #dddddd !important;
+        opacity: 1 !important;
     }
     /* Hide the light-colored streamlit footer bar background */
     [data-testid="stBottomBlockContainer"] {
@@ -359,12 +366,13 @@ def main():
                                 if ok:
                                     final_mcqs.append(m)
                                 else:
-                                    log_trace({
-                                        "type": "mcq_blocked",
-                                        "mcq": m,
-                                        "reason": reason,
-                                        "score": score
-                                    })
+                                    log_trace(
+                                        query="quiz_generation_distractor",
+                                        answer=json.dumps(m),
+                                        grounding_score=score,
+                                        decision="BLOCK_MCQ",
+                                        sources=[m.get("source", {}).get("filename", "unknown")]
+                                    )
                                     
                             final_mcqs = final_mcqs[:num_q]
                             
