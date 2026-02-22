@@ -50,14 +50,15 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# --- Antigravity-Style Simplistic Aesthetic ---
+# --- IDE-Themed Aesthetic Overhaul ---
 st.markdown("""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
 
+    /* Global IDE Dark Theme */
     .stApp {
-        background-color: #000000;
-        color: #ffffff;
+        background-color: #1e1e1e;
+        color: #d4d4d4;
         font-family: 'Inter', sans-serif;
     }
     
@@ -71,103 +72,174 @@ st.markdown("""
         font-size: 2.2rem;
         font-weight: 500;
         text-align: left;
-        color: #ffffff;
+        color: #e0e0e0;
         margin-bottom: 0.2rem;
         letter-spacing: -0.04rem;
     }
     .genie-sub {
-        color: #666666;
+        color: #858585;
         font-size: 0.95rem;
         margin-bottom: 2.5rem;
     }
 
-    /* Step Containers - Pure Dark */
+    /* Step Containers - IDE Panels */
     .step-box {
-        background-color: #000000;
-        border: 1px solid #1a1a1a;
-        border-radius: 8px;
+        background-color: #252526;
+        border: 1px solid #333333;
+        border-radius: 6px;
         padding: 30px;
         margin-bottom: 1.5rem;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.3);
     }
 
     /* High-Legibility Form Elements */
     .stFileUploader section {
-        background-color: #050505 !important;
-        border: 1px solid #1a1a1a !important;
-        color: #ffffff !important;
+        background-color: #2d2d2d !important;
+        border: 1px dashed #444444 !important;
+        color: #d4d4d4 !important;
     }
-    /* Antigravity Buttons (Dark Grey, White Text) */
+    /* Native IDE Action Buttons */
     [data-testid='stFileUploaderDropzone'] button {
-        color: #ffffff !important;
-        background-color: #222222 !important;
-        border: 1px solid #333333 !important;
-        border-radius: 6px !important;
+        color: #cccccc !important;
+        background-color: #3e3e42 !important;
+        border: 1px solid #454545 !important;
+        border-radius: 4px !important;
     }
     [data-testid='stFileUploaderDropzone'] span {
-        color: #ffffff !important;
+        color: #cccccc !important;
     }
 
-    /* Message Bubbles - Antigravity Consistency */
+    /* Message Bubbles - IDE Terminal Consistency */
     .stChatMessage {
-        background-color: #000000 !important;
-        padding: 1.2rem 0 !important;
-        border-bottom: 1px solid #111111 !important;
+        background-color: transparent !important;
+        padding: 1rem 0 !important;
+        border-bottom: 1px solid #2d2d2d !important;
     }
     .stChatMessage div[data-testid="stMarkdownContainer"] p,
     .stChatMessage div[data-testid="stMarkdownContainer"] li,
-    .stChatMessage div[data-testid="stMarkdownContainer"] span,
-    .stChatMessage div[data-testid="stMarkdownContainer"] table,
-    .stChatMessage div[data-testid="stMarkdownContainer"] th,
-    .stChatMessage div[data-testid="stMarkdownContainer"] td,
+    .stChatMessage div[data-testid="stMarkdownContainer"] span {
+        color: #d4d4d4 !important;
+        font-size: 0.95rem !important;
+        line-height: 1.6 !important;
+    }
+    .stChatMessage div[data-testid="stMarkdownContainer"] h1,
+    .stChatMessage div[data-testid="stMarkdownContainer"] h2,
+    .stChatMessage div[data-testid="stMarkdownContainer"] h3 {
+        color: #e0e0e0 !important;
+        font-weight: 500 !important;
+    }
     .stChatMessage div[data-testid="stMarkdownContainer"] strong,
-    .stChatMessage div[data-testid="stMarkdownContainer"] b,
-    .stChatMessage div[data-testid="stMarkdownContainer"] code,
-    .stChatMessage div[data-testid="stMarkdownContainer"] pre {
+    .stChatMessage div[data-testid="stMarkdownContainer"] b {
         color: #ffffff !important;
-        font-size: 1rem !important;
+        font-weight: 600 !important;
+    }
+
+    /* Inline Code Blocks - IDE Syntax Highlighting */
+    .stChatMessage div[data-testid="stMarkdownContainer"] code {
+        color: #ce9178 !important; /* VSCode string color */
+        background-color: #2d2d2d !important;
+        font-family: 'JetBrains Mono', monospace !important;
+        font-size: 0.85rem !important;
+        padding: 0.2rem 0.4rem !important;
+        border-radius: 4px !important;
+        border: 1px solid #404040 !important;
+    }
+    .stChatMessage div[data-testid="stMarkdownContainer"] pre {
+        background-color: #1e1e1e !important;
+        border: 1px solid #333333 !important;
+        border-radius: 6px !important;
+    }
+
+    /* Tables - IDE Structural Data */
+    .stChatMessage div[data-testid="stMarkdownContainer"] table {
+        color: #d4d4d4 !important;
+        border-collapse: collapse !important;
+        width: 100% !important;
+        margin-top: 1rem !important;
+        margin-bottom: 1rem !important;
+    }
+    .stChatMessage div[data-testid="stMarkdownContainer"] th {
+        background-color: #252526 !important;
+        color: #9cdcfe !important; /* VSCode variable color */
+        font-weight: 600 !important;
+        border: 1px solid #404040 !important;
+        padding: 0.75rem !important;
+        text-align: left !important;
+    }
+    .stChatMessage div[data-testid="stMarkdownContainer"] td {
+        border: 1px solid #333333 !important;
+        padding: 0.75rem !important;
+    }
+    .stChatMessage div[data-testid="stMarkdownContainer"] tr:nth-child(even) {
+        background-color: #222222 !important;
     }
 
     /* Primary Assistant Color Bubble */
     .stChatMessage [data-testid="stChatMessageAvatarAssistant"] {
-        background-color: #333333 !important;
+        background-color: #007acc !important; /* VSCode Blue */
     }
 
-    /* Custom Buttons - Pure Antigravity (Dark, White Text) */
+    /* General Default Buttons */
     .stButton > button {
-        background-color: #222222 !important;
+        background-color: #0e639c !important; /* VSCode Button Blue */
         color: #ffffff !important;
-        border: 1px solid #333333 !important;
-        border-radius: 6px !important;
+        border: 1px solid #1177bb !important;
+        border-radius: 4px !important;
         font-weight: 500 !important;
-        padding: 6px 16px !important;
+        padding: 4px 12px !important;
     }
     .stButton > button p {
         color: #ffffff !important;
     }
     .stButton > button:hover {
-        background-color: #333333 !important;
-        border-color: #444444 !important;
+        background-color: #1177bb !important;
+        border-color: #1177bb !important;
     }
 
-    /* Global Input - Total Black (Forced Sticky Footer) */
+    /* Download Buttons Customization - Muted Action Links */
+    div.stDownloadButton > button {
+        background-color: transparent !important;
+        border: 1px solid #404040 !important;
+        color: #cccccc !important;
+        border-radius: 4px !important;
+        padding: 2px 8px !important;
+        font-size: 0.8rem !important;
+    }
+    div.stDownloadButton > button p {
+        color: #cccccc !important;
+        font-size: 0.8rem !important;
+    }
+    div.stDownloadButton > button:hover {
+        background-color: #333333 !important;
+        border-color: #858585 !important;
+    }
+
+    /* Global Input - IDE Command Palette Style */
     div[data-testid="stChatInput"] {
-        background-color: #000000 !important;
+        background-color: #1e1e1e !important;
         padding-bottom: 2rem !important;
     }
     div[data-testid="stChatInput"] textarea {
-        background-color: #000000 !important;
-        color: #ffffff !important;
-        border: 1px solid #1a1a1a !important;
-        caret-color: #ffffff !important;
+        background-color: #252526 !important;
+        color: #d4d4d4 !important;
+        border: 1px solid #3c3c3c !important;
+        border-radius: 4px !important;
+        caret-color: #d4d4d4 !important;
+        font-family: 'Inter', sans-serif !important;
+    }
+    div[data-testid="stChatInput"] textarea:focus {
+        border-color: #007acc !important;
+        box-shadow: 0 0 0 1px #007acc !important;
     }
     div[data-testid="stChatInput"] textarea::placeholder {
-        color: #dddddd !important;
+        color: #858585 !important;
         opacity: 1 !important;
     }
+    
     /* Hide the light-colored streamlit footer bar background */
     [data-testid="stBottomBlockContainer"] {
-        background-color: #000000 !important;
-        border-top: 1px solid #111111 !important;
+        background-color: #1e1e1e !important;
+        border-top: 1px solid #2d2d2d !important;
     }
     
     /* Knowledge Bar */
@@ -319,8 +391,8 @@ def main():
             with st.chat_message(msg["role"]):
                 st.markdown(msg["content"], unsafe_allow_html=True)
                 
-                # Add download buttons for assistant messages
-                if msg["role"] == "assistant" and msg["content"] and "Error during quiz generation" not in msg["content"]:
+                # Add download buttons for assistant messages (only if it's a real content response)
+                if msg["role"] == "assistant" and msg["content"] and "I'm sorry, I cannot verify" not in msg["content"] and "Error" not in msg["content"]:
                     dl_cols = st.columns([0.15, 0.15, 0.7])
                     with dl_cols[0]:
                         st.download_button(
