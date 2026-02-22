@@ -1,92 +1,71 @@
-# Genie AI — Premium Private Document Intelligence
+# genie
 
-Genie AI is a production-grade private document intelligence assistant that handles complex document tasks with strict grounding and premium aesthetics.
+> **Simplistic, premium document intelligence.**
 
-## Key Capabilities
+An enterprise-grade document assistant that sacrifices hallucination for safety. Genie forces strict grounding mathematics and dual-lock citation verification on every inference, ensuring that if it doesn't exist in the document, it won't exist in the chat. 
 
-- **Genie Wizard UX** — Intuitive sequential flow: Upload → Index → Chat
-- **Universal Assistant** — Flexible task following (Summaries, Tables, Math, QA)
-- **Production Retrieval** — Hybrid Search (FAISS + BM25) + Cross-Encoder Reranking
-- **Rich Rendering** — Native support for LaTeX math and Markdown tables
-- **Citation Enforcement** — Harvard-style references with page numbers
-- **Grounding & Security** — Mandatory score validation and Audit logging
+Try it live: [https://genie-private-doc-intelligence-kns4yqtsqq6hshs7gq59m7.streamlit.app/](https://genie-private-doc-intelligence-kns4yqtsqq6hshs7gq59m7.streamlit.app/)
 
-## Architecture Overview
+---
 
-```
-User Instruction
-→ Intent Detection (Universal vs. Specialized)
-→ Hybrid Retrieval (FAISS + BM25)
-→ Cross-Encoder Reranking
-→ Instruction Execution (Mistral-7B Class)
-→ Grounding Validation
-→ Gatekeeper Decision
-→ Rich UI Rendering (Table/Math)
-→ Audit Logging
-```
+### The Problem
 
-## Decision States
+Structural bottlenecks exist when critical knowledge lives exclusively in unread PDFs or the heads of subject matter experts. Generic AI agents are dangerous in these constrained domains because they eagerly synthesize unverified facts. Genie solves this by turning dormant documentation into a trusted, **citation-enforced** intelligence layer. If an answer cannot be explicitly mapped to a retrieved paragraph, the Gatekeeper destroys the response before the user ever sees it.
 
-| Decision | Meaning |
-|---|---|
-| ✅ PASS | Grounded answer with valid inline citations |
-| ⚠️ SYNTHESIS | Document-based synthesis without direct citation |
-| 🚫 BLOCK | Insufficient evidence — SME escalation required |
+---
 
-## Installation
+### Architecture 
+
+Genie employs a deterministic Retrieval-Augmented Generation (RAG) pipeline backed by `Mistral-7B-Instruct`, operating strictly as a factual proxy. 
+
+**The Pipeline:**
+1. **Semantic Ingestion:** Documents are parsed (`pdfplumber`) and mapped to an embedding lattice (`all-MiniLM-L6-v2`) while preserving strict multi-page provenance.
+2. **Hybrid Search:** Queries execute simultaneously across dense `FAISS` vectors (semantic) and sparse `BM25` indices (keyword), maximizing edge-case recall.
+3. **Cross-Encoder Reranking:** A `ms-marco` cross-encoder computationally rescores the retrieved chunks against the exact query intent to prioritize ground truth.
+4. **Dual-Lock Gatekeeping (The Safety Layer):** 
+    - *Gate 1 (Math):* Cosine similarity of the generation vs. the source chunks must exceed the defined grounding threshold (e.g., `0.40 FACTUAL`).
+    - *Gate 2 (Regex):* The generation MUST contain a strict Harvard-style `(Filename, Page N)` citation anchor. 
+    - **Result:** If either gate fails, the system executes an uncompromising `BLOCK`.
+
+---
+
+### Supported Workloads
+
+Genie dynamically routes context based on the query's structural intent.
+
+- **Factual Analytics:** Direct question answering with multi-source bounding. 
+- **Tabular Extractions:** Forcing the LLM to output rigid Markdown and LaTeX tables.
+- **Automated QA Engineering:** `quiz_generator.py` programmatically structures chunks into verified Multiple Choice quizzes using standalone NLI evaluation logic.
+
+---
+
+### Local Initialization
+
+The project utilizes a standard Python virtual environment.
 
 ```bash
+git clone https://github.com/rahulphaltankar/genie-private-doc-intelligence.git
+cd genie-private-doc-intelligence
 pip install -r requirements.txt
 ```
 
-## Environment Setup
-
-Create a `.env` file in the project root:
-
-```
-MISTRAL_API_KEY=your_api_key_here
+**Environment Config (`.env`):**
+```bash
+MISTRAL_API_KEY=your_key_here
 ```
 
-## Run Locally
-
+**Execute Node:**
 ```bash
 streamlit run app.py
 ```
 
-## Project Structure
+---
 
-```
-genie/
-├── app.py                  # Main Streamlit application (Redesigned)
-├── ingestion_pipeline.py    # Multi-format ingestion with page preservation
-├── chunker.py               # Semantic page-aware chunking
-├── hybrid_retriever.py      # Vector + BM25 merging logic
-├── bm25_index.py            # Keyword search index
-├── reranker.py              # Cross-Encoder scoring
-├── mode_router.py           # Task intent detection
-├── quiz_generator.py        # Specialized MCQ generation
-├── grounding.py             # Grounding score computation
-├── citation_validator.py    # Citation detection
-├── gatekeeper.py            # Dual-enforcement decision engine
-├── trace_logger.py          # Persistent audit logging
-├── requirements.txt
-├── README.md
-├── CHANGELOG.md
-└── .gitignore
-```
+### Testing Instrumentation
 
-## Security Model
+The codebase contains a built-in programmatic ISTQB Quality Assurance harness. The system can be mathematically evaluated without requiring UI interactions. 
 
-- **Citation-Enforced Answers** — No answer passes without source attribution
-- **Grounding Gate** — Answer must be semantically derived from documents
-- **No Silent Hallucination** — Refusals are explicit with reason
-- **Audit Trace Logging** — Every decision persisted to `genie_trace_log.jsonl`
-- **Zero-Trust UI** — Provenance and results are always distinct
+- `istqb_test_execution.py`: Validates component metrics (FAISS bounds, BM25 indices, `pdfplumber` recovery, Gatekeeper semantic traps).
+- `istqb_functional_test.py`: Triggers deterministic adversarial prompt injections and formatting overloads against the LLM architecture.
 
-## Supported File Formats
-
-PDF, DOCX, TXT.
-
-## License
-
-MIT License
+*genie is licensed under the MIT Protocol.*
