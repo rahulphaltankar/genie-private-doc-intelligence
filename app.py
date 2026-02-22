@@ -331,50 +331,56 @@ def main():
                     top = [c for c, s in scored]
                     
                     if intent == "quiz":
-                        num_q = extract_number(user_msg)
-                        
-                        from structured_extractor import extract_atomic_facts
-                        facts = []
-                        for chunk in top:
-                            facts.extend(extract_atomic_facts(chunk))
-                        
-                        unique = {}
-                        for f in facts:
-                            key = f["text"]
-                            if key not in unique:
-                                unique[key] = f
-                        facts = list(unique.values())
-                        
-                        from quiz_generator import generate_mcqs_from_facts
-                        mcqs = generate_mcqs_from_facts(facts, max_questions=num_q * 3)
-                        
-                        from per_output_validator import validate_mcq
-                        chunks_store = {c.chunk_id: c for c in st.session_state.chunks}
-                        
-                        final_mcqs = []
-                        from trace_logger import log_trace
-                        for m in mcqs:
-                            ok, reason, score = validate_mcq(m, chunks_store)
-                            if ok:
-                                final_mcqs.append(m)
-                            else:
-                                log_trace({
-                                    "type": "mcq_blocked",
-                                    "mcq": m,
-                                    "reason": reason,
-                                    "score": score
-                                })
-                                
-                        final_mcqs = final_mcqs[:num_q]
-                        
-                        if len(final_mcqs) < num_q:
-                            ans = f"I could only generate {len(final_mcqs)} verified questions from your documents. For broader question types, allow synthesis mode (may draw on multiple sections). Or upload additional documents.\n\n"
-                        else:
-                            ans = f"### 🧞 Quiz Generated ({len(final_mcqs)} questions)\n\n"
+                        try:
+                            num_q = extract_number(user_msg)
                             
-                        for i, q in enumerate(final_mcqs):
-                            opts = q['options']
-                            ans += f"**{i+1}. {q['question']}**\n- " + "\n- ".join(opts) + f"\n*Correct Answer: {q['answer']}*\n\n"
+                            from structured_extractor import extract_atomic_facts
+                            facts = []
+                            for chunk in top:
+                                facts.extend(extract_atomic_facts(chunk))
+                            
+                            unique = {}
+                            for f in facts:
+                                key = f["text"]
+                                if key not in unique:
+                                    unique[key] = f
+                            facts = list(unique.values())
+                            
+                            from quiz_generator import generate_mcqs_from_facts
+                            mcqs = generate_mcqs_from_facts(facts, max_questions=num_q * 3)
+                            
+                            from per_output_validator import validate_mcq
+                            chunks_store = {c.chunk_id: c for c in st.session_state.chunks}
+                            
+                            final_mcqs = []
+                            from trace_logger import log_trace
+                            for m in mcqs:
+                                ok, reason, score = validate_mcq(m, chunks_store)
+                                if ok:
+                                    final_mcqs.append(m)
+                                else:
+                                    log_trace({
+                                        "type": "mcq_blocked",
+                                        "mcq": m,
+                                        "reason": reason,
+                                        "score": score
+                                    })
+                                    
+                            final_mcqs = final_mcqs[:num_q]
+                            
+                            if len(final_mcqs) < num_q:
+                                ans = f"I could only generate {len(final_mcqs)} verified questions from your documents. For broader question types, allow synthesis mode (may draw on multiple sections). Or upload additional documents.\n\n"
+                            else:
+                                ans = f"### 🧞 Quiz Generated ({len(final_mcqs)} questions)\n\n"
+                                
+                            for i, q in enumerate(final_mcqs):
+                                opts = q['options']
+                                ans += f"**{i+1}. {q['question']}**\n- " + "\n- ".join(opts) + f"\n*Correct Answer: {q['answer']}*\n\n"
+                        except Exception as e:
+                            import traceback
+                            st.error(f"Genie System Error (Quiz Gen): {str(e)}")
+                            st.code(traceback.format_exc())
+                            ans = f"Error during quiz generation: {str(e)}"
                     else:
                         top = top[:10]
                         ctx = "\n".join([f"Source ({c.filename}, Page {c.page}): {c.text}" for c in top])
