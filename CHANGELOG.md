@@ -4,6 +4,17 @@ All notable changes to Genie are documented here.
 
 ---
 
+## [v3.1.0] — 2026-02-22 — Hackathon 3 Final: The Comprehension Engine
+
+### Added
+- **Automated Quiz Generation** — `quiz_generator.py` orchestrates the creation of strict, document-bound MCQs from extracted facts.
+- **Smart Distractor Generation** — Tricky, contextual distractors that use same-type facts from the document, preventing ungrounded hallucinations.
+- **Structured Data Extraction** — Added `structured_extractor.py` to prompt the LLM to return strictly parsed facts.
+- **Per-Output Validation** — Added `per_output_validator.py` to ensure every single generated question and distractor is grounded in the retrieved text.
+- **Multi-chunk Synthesis Pipeline** — Connected the Streamlit UI to handle heavy document testing and render the AI-generated quiz seamlessly.
+
+---
+
 ## [v3.0.0] — 2026-02-21 — Hackathon 3: The Universal Expansion
 
 ### Added

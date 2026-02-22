@@ -54,15 +54,13 @@ def run_gatekeeper(
         return ("BLOCK", "No direct citations found in answer. All responses must be grounded.")
 
     # ── Gate 2: Tiered Logic ──────────────────────────────────────────────
-    if grounding_score >= FACTUAL_PASS_THRESHOLD:
-        return ("PASS", f"PASS — Grounded answer (score {grounding_score:.3f})")
-
-    if grounding_score >= SYNTHESIS_PASS_THRESHOLD:
-        return ("SYNTHESIS", f"SYNTHESIS — Synthesised answer (score {grounding_score:.3f})")
-
-    # ── Gate 3: Final Block ──────────────────────────────────────────────
-    return (
-        "BLOCK",
-        f"Low grounding score ({grounding_score:.3f} < {SYNTHESIS_PASS_THRESHOLD}). "
-        "Answer not sufficiently derived from documents."
-    )
+    if mode == "comprehension":
+        if grounding_score >= SYNTHESIS_PASS_THRESHOLD:
+            return ("SYNTHESIS", f"SYNTHESIS — Synthesised answer (score {grounding_score:.3f})")
+        else:
+            return ("BLOCK", f"Low grounding score ({grounding_score:.3f} < {SYNTHESIS_PASS_THRESHOLD}). Answer not sufficiently derived from documents.")
+    else:
+        if grounding_score >= FACTUAL_PASS_THRESHOLD:
+            return ("PASS", f"PASS — Grounded answer (score {grounding_score:.3f})")
+        else:
+            return ("BLOCK", f"Low grounding score ({grounding_score:.3f} < {FACTUAL_PASS_THRESHOLD}). Answer not sufficiently derived from documents.")

@@ -1,67 +1,80 @@
+# genie/quiz_generator.py
 import random
-import requests
-import os
 from typing import List, Dict, Any
-from metadata_schema import ChunkMeta
-from structured_extractor import extract_factual_sentences
+import logging
+_logger = logging.getLogger(__name__)
 
-def generate_quiz(chunks: List[ChunkMeta], num_questions: int = 5) -> Dict[str, Any]:
+def generate_mcqs_from_facts(facts: List[Dict[str,Any]], max_questions=10):
     """
-    Generates a quiz by selecting factual sentences and using an LLM to form MCQs.
-    Strictly extractive distractor logic is requested, but often requires LLM for quality.
-    We will use a strict prompt to ensure distractors are plausible but grounded.
-    """
-    facts = extract_factual_sentences(chunks)
-    if not facts:
-        return {"items": []}
-        
-    # Sample facts to generate questions from
-    selected_facts = random.sample(facts, min(len(facts), num_questions * 2))
-    
-    quiz_items = []
-    
-    api_key = os.getenv("MISTRAL_API_KEY")
-    url = "https://api.mistral.ai/v1/chat/completions"
-    headers = {
-        "Authorization": f"Bearer {api_key}",
-        "Content-Type": "application/json"
+    facts: list of {type,text,source}
+    returns: list of MCQ dicts:
+    {
+      question: str,
+      options: [str],
+      answer: str,
+      source: {...}
     }
+    """
+    # shuffle to vary selection, but deterministic in tests you can set seed
+    random.shuffle(facts)
 
-    for fact in selected_facts:
-        if len(quiz_items) >= num_questions:
+    # index facts by simple type buckets for distractor selection
+    by_type = {}
+    for f in facts:
+        by_type.setdefault(f["type"], []).append(f)
+
+    mcqs = []
+    for f in facts:
+        if len(mcqs) >= max_questions:
             break
-            
-        prompt = f"""Task: Create a multiple-choice question (MCQ) based ONLY on the following fact.
-Fact: {fact['text']}
+        correct = f["text"]
+        q = formulate_question_from_fact(f)
+        # build distractors
+        distractors = []
+        # prefer same-type distractors
+        pool = [x["text"] for x in by_type.get(f["type"], []) if x["text"] != f["text"]]
+        # fallback to other facts
+        if len(pool) < 3:
+            pool += [x["text"] for x in facts if x["text"] != f["text"]]
+        # take up to 3 distractors from pool
+        pool = list(dict.fromkeys(pool))  # uniq
+        if not pool:
+            continue  # cannot create safe MCQ
+        # deterministic selection
+        distractors = pool[:3]
+        options = [correct] + distractors
+        # ensure 4 options
+        while len(options) < 4:
+            # padding by shuffling existing options (not ideal but safe)
+            options.append(random.choice(options))
+        random.shuffle(options)
+        # final sanitize: ensure answer present
+        if correct not in options:
+            options[0] = correct
+            random.shuffle(options)
+        mcqs.append({
+            "question": q,
+            "options": options,
+            "answer": correct,
+            "source": f["source"]
+        })
+    return mcqs
 
-STRICT RULES:
-1. The question must be a direct inquiry about the fact.
-2. The correct answer must be present verbatim in the fact.
-3. Provide 3 distractors that are plausible but incorrect based on the fact.
-4. Output JSON format only: {{"question": "...", "options": ["A", "B", "C", "D"], "answer": "Option text", "explanation": "..."}}
-"""
+def formulate_question_from_fact(fact: Dict[str,Any]) -> str:
+    """
+    Very conservative templates based on fact type
+    """
+    t = fact["type"]
+    text = fact["text"]
+    if t == "definition":
+        # naive split: "<term> is defined as <def>"
+        return f"According to the document, which statement correctly defines: \"{shorten(text,40)}\"?"
+    if t == "equation":
+        return f"Which expression is stated in the document? \"{shorten(text,40)}\""
+    if t == "numeric":
+        return f"Which numeric fact is stated in the document? \"{shorten(text,40)}\""
+    # default
+    return f"According to the document: {shorten(text,80)}"
 
-        data = {
-            "model": "mistral-tiny",
-            "messages": [{"role": "user", "content": prompt}],
-            "response_format": {"type": "json_object"}
-        }
-
-        try:
-            response = requests.post(url, headers=headers, json=data)
-            response.raise_for_status()
-            item = response.json()['choices'][0]['message']['content']
-            import json
-            item_data = json.loads(item)
-            # Sanitize options: ensure they are a list of strings
-            if isinstance(item_data.get('options'), dict):
-                item_data['options'] = list(item_data['options'].values())
-            elif isinstance(item_data.get('options'), list):
-                item_data['options'] = [str(o) if not isinstance(o, dict) else str(next(iter(o.values()))) for o in item_data['options']]
-            
-            item_data['source'] = fact['source']
-            quiz_items.append(item_data)
-        except Exception:
-            continue
-            
-    return {"items": quiz_items}
+def shorten(s, n=80):
+    return (s[:n].rsplit(' ',1)[0] + '...') if len(s) > n else s

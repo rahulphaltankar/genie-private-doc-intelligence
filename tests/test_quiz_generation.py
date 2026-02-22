@@ -1,24 +1,19 @@
 import pytest
-from quiz_generator import generate_quiz
-from metadata_schema import ChunkMeta
 
-def test_quiz_structure():
-    mock_chunks = [
-        ChunkMeta(chunk_id="1", doc_id="d1", filename="test.pdf", text="The capital of France is Paris. It has a population of 2 million.", page=1)
-    ]
-    # Note: This will attempt to call Mistral API, might need mocking in a real CI
-    # For now, we test the logic assuming environment variable might be present or handled
-    quiz = generate_quiz(mock_chunks, num_questions=1)
+def test_quiz_generator():
+    from quiz_generator import generate_mcqs_from_facts
     
-    assert "items" in quiz
-    if len(quiz["items"]) > 0:
-        item = quiz["items"][0]
-        assert "question" in item
-        assert "options" in item
-        assert "answer" in item
-        assert "source" in item
-        assert item["source"]["filename"] == "test.pdf"
-
-def test_empty_chunks():
-    quiz = generate_quiz([], num_questions=1)
-    assert quiz["items"] == []
+    facts = [
+        {"type": "numeric", "text": "10 epochs", "source": {"doc_id": "doc1"}},
+        {"type": "numeric", "text": "20 epochs", "source": {"doc_id": "doc1"}},
+        {"type": "numeric", "text": "30 epochs", "source": {"doc_id": "doc1"}},
+        {"type": "numeric", "text": "40 epochs", "source": {"doc_id": "doc1"}},
+    ]
+    
+    mcqs = generate_mcqs_from_facts(facts, max_questions=2)
+    
+    assert len(mcqs) == 2
+    for mcq in mcqs:
+        assert len(mcq["options"]) == 4
+        assert mcq["answer"] in mcq["options"]
+        assert all(opt in [f["text"] for f in facts] for opt in mcq["options"])

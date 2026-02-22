@@ -1,14 +1,25 @@
 import re
 
-def detect_intent(query: str) -> str:
-    """
-    Detects if a specialized pipeline (like Quiz) is needed.
-    Otherwise, defaults to 'universal' for flexible instruction following.
-    """
+def detect_mode(query: str) -> str:
     query_lower = query.lower()
     
     # Keep specialized quiz generation as it uses a multi-step fact-extraction process
     if any(word in query_lower for word in ["quiz", "mcq", "multiple choice", "test me"]):
         return "quiz"
         
-    return "universal"
+    comprehension_keywords = [
+        "explain",
+        "summarize",
+        "describe",
+        "overview",
+        "architecture",
+        "how does",
+        "what is the purpose",
+        "concept"
+    ]
+    
+    for word in comprehension_keywords:
+        if word in query_lower:
+            return "comprehension"
+            
+    return "factual"

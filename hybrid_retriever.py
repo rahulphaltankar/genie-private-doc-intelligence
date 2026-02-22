@@ -7,7 +7,7 @@ def hybrid_search(
     encoder_model,
     bm25_index,
     chunks,
-    top_k=5
+    top_k=10
 ):
     """
     Returns hybrid retrieval chunk indices
