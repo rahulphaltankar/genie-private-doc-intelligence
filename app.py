@@ -179,8 +179,8 @@ st.markdown("""
         background-color: #007acc !important; /* VSCode Blue */
     }
 
-    /* General Default Buttons */
-    .stButton > button {
+    /* Primary Actions (Blue) */
+    .stButton > button[kind="primary"] {
         background-color: #0e639c !important; /* VSCode Button Blue */
         color: #ffffff !important;
         border: 1px solid #1177bb !important;
@@ -188,12 +188,24 @@ st.markdown("""
         font-weight: 500 !important;
         padding: 4px 12px !important;
     }
-    .stButton > button p {
-        color: #ffffff !important;
-    }
-    .stButton > button:hover {
+    .stButton > button[kind="primary"]:hover {
         background-color: #1177bb !important;
         border-color: #1177bb !important;
+    }
+
+    /* Secondary Actions (Dark Grey) */
+    .stButton > button[kind="secondary"] {
+        background-color: #252526 !important;
+        color: #cccccc !important;
+        border: 1px solid #404040 !important;
+        border-radius: 4px !important;
+        font-weight: 500 !important;
+        padding: 4px 12px !important;
+    }
+    .stButton > button[kind="secondary"]:hover {
+        background-color: #333333 !important;
+        border-color: #555555 !important;
+        color: #ffffff !important;
     }
 
     /* Download Buttons Customization - Muted Action Links */
@@ -222,10 +234,17 @@ st.markdown("""
         border-color: #858585 !important;
     }
 
-    /* Global Input - IDE Command Palette Style */
+    /* Global Input - IDE Command Palette Style (Flattened) */
     div[data-testid="stChatInput"] {
         background-color: #1e1e1e !important;
         padding-bottom: 2rem !important;
+        padding-top: 1rem !important;
+        border-top: 1px solid #333333 !important; /* Top separator line */
+    }
+    /* Hide the inner white widget frame */
+    div[data-testid="stChatInput"] > div {
+        background-color: transparent !important;
+        border: none !important;
     }
     div[data-testid="stChatInput"] textarea {
         background-color: #252526 !important;
@@ -348,7 +367,7 @@ def main():
         st.markdown("### Analyze Patterns")
         st.write(f"Knowledge Source: {len(st.session_state.uploader)} documents successfully staged.")
         
-        if st.button("Build Assistant Brain"):
+        if st.button("Build Assistant Brain", type="primary"):
             with st.spinner("Processing..."):
                 try:
                     chunks = process_uploaded_files(st.session_state.uploader)
@@ -380,7 +399,7 @@ def main():
     # --- Step 3: Chat ---
     elif st.session_state.stage == "chat":
         # Compact top header with Knowledge Bar
-        cols = st.columns([0.8, 0.2])
+        cols = st.columns([0.8, 0.2], vertical_alignment="bottom")
         with cols[0]:
             st.markdown('**genie** · active')
             # Knowledge Bar: Always visible pills
@@ -388,7 +407,7 @@ def main():
             kb_html = '<div class="knowledge-bar">' + "".join([f'<div class="knowledge-pill">📄 {name}</div>' for name in files]) + '</div>'
             st.markdown(kb_html, unsafe_allow_html=True)
         with cols[1]:
-            if st.button("Reset", use_container_width=True):
+            if st.button("Reset", use_container_width=True, type="secondary"):
                 st.session_state.clear()
                 st.rerun()
 
