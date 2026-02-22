@@ -11,18 +11,22 @@ import re
 # Harvard full citation: (Author, 2024, p. 4)
 HARVARD_FULL_PATTERN = r"\([A-Za-z][\w\s\-\.]*,\s\d{4},\sp\.\s\d+\)"
 
-# Harvard n.d. citation: (filename.pdf, n.d.)  — our formatter's output
+# Harvard n.d. citation: (filename.pdf, n.d.)
 HARVARD_ND_PATTERN = r"\([\w\s\-\.]+,\sn\.d\.\)"
 
+# Page-aware citation from Hackathon 3: (filename.pdf, Page X)
+# Matches (Attention Is All You Need.pdf, Page 4)
+HARVARD_PAGE_PATTERN = r"\([\w\s\-\.]+,\sPage\s\d+\)"
 
 def extract_citations(answer: str) -> list:
     """
-    Extract all Harvard-style citations (full or n.d.) from answer.
+    Extract all Harvard-style citations (full, n.d., or Page X) from answer.
     Returns a list of matched citation strings.
     """
     full = re.findall(HARVARD_FULL_PATTERN, answer)
     nd = re.findall(HARVARD_ND_PATTERN, answer)
-    return full + nd
+    page = re.findall(HARVARD_PAGE_PATTERN, answer)
+    return full + nd + page
 
 
 def has_valid_citations(answer: str) -> bool:
