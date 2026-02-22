@@ -202,12 +202,20 @@ st.markdown("""
         border: 1px solid #404040 !important;
         color: #cccccc !important;
         border-radius: 4px !important;
-        padding: 2px 8px !important;
-        font-size: 0.8rem !important;
+        padding: 4px 10px !important;
+        font-size: 0.85rem !important;
+        display: inline-flex !important;
+        flex-direction: row !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 0.3rem !important;
+        height: 32px !important;
+        white-space: nowrap !important;
     }
     div.stDownloadButton > button p {
         color: #cccccc !important;
-        font-size: 0.8rem !important;
+        font-size: 0.85rem !important;
+        margin: 0 !important;
     }
     div.stDownloadButton > button:hover {
         background-color: #333333 !important;
@@ -396,7 +404,7 @@ def main():
                     dl_cols = st.columns([0.15, 0.15, 0.7])
                     with dl_cols[0]:
                         st.download_button(
-                            label="⬇️ Markdown",
+                            label="⬇️ .md",
                             data=msg["content"],
                             file_name=f"genie_response_{idx}.md",
                             mime="text/markdown",
@@ -435,7 +443,7 @@ def main():
                         pdf_bytes = pdf_buffer.getvalue()
                         
                         st.download_button(
-                            label="⬇️ PDF",
+                            label="⬇️ .pdf",
                             data=pdf_bytes,
                             file_name=f"genie_response_{idx}.pdf",
                             mime="application/pdf",
