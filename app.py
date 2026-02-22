@@ -241,10 +241,15 @@ st.markdown("""
         padding-top: 1rem !important;
         border-top: 1px solid #333333 !important; /* Top separator line */
     }
-    /* Hide the inner white widget frame */
+    /* Hide the inner white widget frame and strip rounded artifacts */
     div[data-testid="stChatInput"] > div {
         background-color: transparent !important;
         border: none !important;
+        border-radius: 0 !important;
+    }
+    div[data-testid="stChatInput"] > div::before,
+    div[data-testid="stChatInput"] > div::after {
+        display: none !important;
     }
     div[data-testid="stChatInput"] textarea {
         background-color: #252526 !important;
@@ -263,6 +268,22 @@ st.markdown("""
         opacity: 1 !important;
     }
     
+    /* Enhance visibility of the embedded Send button */
+    div[data-testid="stChatInput"] button {
+        background-color: #333333 !important;
+        color: #ffffff !important;
+        border: 1px solid #404040 !important;
+        opacity: 1 !important;
+        border-radius: 4px !important;
+    }
+    div[data-testid="stChatInput"] button:hover {
+        background-color: #444444 !important;
+    }
+    div[data-testid="stChatInput"] button svg {
+        fill: #ffffff !important;
+        stroke: #ffffff !important;
+    }
+    
     /* Hide the light-colored streamlit footer bar background */
     [data-testid="stBottomBlockContainer"] {
         background-color: #1e1e1e !important;
@@ -271,19 +292,23 @@ st.markdown("""
     
     /* Knowledge Bar */
     .knowledge-bar {
-        background-color: #000000;
-        border-bottom: 1px solid #111111;
-        padding: 8px 0;
-        display: flex;
-        gap: 8px;
+        background-color: transparent !important;
+        padding: 0 !important;
+        display: flex !important;
+        gap: 8px !important;
+        border: none !important;
     }
     .knowledge-pill {
-        background-color: #111111;
-        color: #888888;
-        padding: 3px 10px;
-        border-radius: 4px;
-        font-size: 0.7rem;
-        border: 1px solid #1a1a1a;
+        background-color: #252526 !important;
+        color: #cccccc !important;
+        padding: 4px 12px !important;
+        border-radius: 4px !important;
+        font-size: 0.85rem !important;
+        border: 1px solid #404040 !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        height: 32px !important;
+        margin: 0 !important;
     }
 
     /* Reset default st content spacing */
