@@ -13,7 +13,13 @@ import nltk
 from ingestion_pipeline import process_uploaded_files
 from bm25_index import BM25Index
 from hybrid_retriever import hybrid_search
-from reranker import Reranker
+try:
+    from reranker import Reranker
+except Exception as e:
+    Reranker = None
+    import traceback
+    st.error(f"Genie System Error (Reranker Import): {str(e)}")
+    st.code(traceback.format_exc())
 # from quiz_generator import generate_quiz
 from mode_router import detect_mode
 from citation_formatter import format_harvard_citation
