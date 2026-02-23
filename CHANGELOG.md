@@ -4,6 +4,18 @@ All notable changes to Genie are documented here.
 
 ---
 
+## [v3.2.0] — 2026-02-23 — Retrieval Integrity Optimization
+### Added
+- **Retrieval Optimization Harness** — `retrieval_experiments.py` added to systematically benchmark k-values, hybrid weighting, context expansion, and metadata boosting.
+- **Metadata Boosting Logic** — Enhanced `hybrid_retriever.py` with automatic header detection and scoring boosts for structural document anchors.
+- **Top-K Reranking Depth** — Increased Cross-Encoder depth to Top 10, improving comprehension mode precision by 1.3%.
+
+### Improved
+- **Recall Accuracy** — Successfully reached 100% Retrieval Recall@3 across the baseline AI Act evaluation suite.
+- **Production Routing** — Applied the winning sweep configuration (Top_k=10, Alpha=0.5) to the main `app.py` pipeline.
+
+---
+
 ## [v3.1.1] — 2026-02-22 — Final Release (Hackathon 3)
 
 ### Added

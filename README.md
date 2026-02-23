@@ -68,4 +68,13 @@ The codebase contains a built-in programmatic ISTQB Quality Assurance harness. T
 - `istqb_test_execution.py`: Validates component metrics (FAISS bounds, BM25 indices, `pdfplumber` recovery, Gatekeeper semantic traps).
 - `istqb_functional_test.py`: Triggers deterministic adversarial prompt injections and formatting overloads against the LLM architecture.
 
+---
+
+### 📑 Hackathon 3 Documentation
+For a deep-dive into the technical and functional evolution of Genie, see:
+- [Techno-Functional Summary](docs/Techno_Functional_Summary.md)
+- [Retrieval Optimization Walkthrough](docs/retrieval_walkthrough.md)
+
+---
+
 *genie is licensed under the MIT Protocol.*
