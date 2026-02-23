@@ -152,6 +152,7 @@ def run_all_tests():
         
     metrics = calculate_aggregate_metrics(results)
     generate_report(metrics, results)
+    return metrics
     
 if __name__ == "__main__":
     run_all_tests()

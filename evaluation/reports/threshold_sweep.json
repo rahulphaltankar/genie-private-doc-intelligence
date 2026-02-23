@@ -1,0 +1,42 @@
+[
+    {
+        "threshold": 0.4,
+        "metrics": {
+            "total_tests": 12,
+            "average_score": 86.66666666666667,
+            "hallucination_rate": 0.0,
+            "block_accuracy": 1.0,
+            "retrieval_recall_at_3": 1.0
+        }
+    },
+    {
+        "threshold": 0.45,
+        "metrics": {
+            "total_tests": 12,
+            "average_score": 89.16666666666667,
+            "hallucination_rate": 0.0,
+            "block_accuracy": 1.0,
+            "retrieval_recall_at_3": 1.0
+        }
+    },
+    {
+        "threshold": 0.5,
+        "metrics": {
+            "total_tests": 12,
+            "average_score": 87.91666666666667,
+            "hallucination_rate": 0.0,
+            "block_accuracy": 1.0,
+            "retrieval_recall_at_3": 1.0
+        }
+    },
+    {
+        "threshold": 0.55,
+        "metrics": {
+            "total_tests": 12,
+            "average_score": 87.08333333333333,
+            "hallucination_rate": 0.0,
+            "block_accuracy": 1.0,
+            "retrieval_recall_at_3": 1.0
+        }
+    }
+]

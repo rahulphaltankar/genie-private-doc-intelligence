@@ -25,8 +25,8 @@ from citation_validator import has_valid_citations
 GatekeeperDecision = Literal["PASS", "SYNTHESIS", "BLOCK"]
 
 # Grounding score thresholds (cosine similarity, 0.0–1.0)
-FACTUAL_PASS_THRESHOLD = 0.45
-SYNTHESIS_PASS_THRESHOLD = 0.30
+FACTUAL_PASS_THRESHOLD = 0.55
+SYNTHESIS_PASS_THRESHOLD = 0.40
 
 
 def run_gatekeeper(
