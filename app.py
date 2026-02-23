@@ -329,7 +329,7 @@ def call_mistral_api(query, context):
     
     system_prompt = (
         "You are Genie, a precision AI assistant. "
-        "Use ONLY the provided context. If the fact is not in the context, say you cannot find it.\n"
+        "Use ONLY the provided context. If the context does NOT contain the exact evidence needed to fully address the prompt, explicitly state 'ANSWER_NOT_IN_DOCUMENTS' and do not generate an answer.\n"
         "FORMATTING:\n"
         "- Use clear headings and lists.\n"
         "- Use Markdown tables if requested.\n"
