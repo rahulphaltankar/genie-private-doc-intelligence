@@ -19,6 +19,11 @@ class BM25Index:
 
         self.bm25 = BM25Okapi(self.tokenized_chunks)
 
+    def score_all(self, query):
+        """Returns raw BM25 scores for all chunks for weighted hybrid search."""
+        query_tokens = query.lower().split()
+        return self.bm25.get_scores(query_tokens)
+
     def search(self, query, top_k=5):
         """
         Returns indices of best matching chunks

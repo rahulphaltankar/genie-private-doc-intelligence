@@ -508,7 +508,9 @@ def main():
                         encoder_model=embedding_model,
                         bm25_index=st.session_state.bm25_index,
                         chunks=st.session_state.chunks,
-                        top_k=15 if intent == "quiz" else 10
+                        top_k=15 if intent == "quiz" else 10,
+                        alpha=0.5,
+                        metadata_boost=0.0
                     )
                     
                     # Map indices back to ChunkMeta objects

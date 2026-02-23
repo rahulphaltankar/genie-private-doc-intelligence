@@ -1,0 +1,173 @@
+[
+    {
+        "name": "Baseline (k5, alpha0.5)",
+        "params": {
+            "name": "Baseline (k5, alpha0.5)",
+            "top_k": 5,
+            "alpha": 0.5,
+            "expansion": false,
+            "rerank_k": 5,
+            "boost": 0.0
+        },
+        "latency_seconds": 107.86603021621704,
+        "metrics": {
+            "total_tests": 12,
+            "average_score": 88.33333333333333,
+            "hallucination_rate": 0.0,
+            "block_accuracy": 1.0,
+            "retrieval_recall_at_3": 1.0
+        }
+    },
+    {
+        "name": "Step 1: Increase k to 8",
+        "params": {
+            "name": "Step 1: Increase k to 8",
+            "top_k": 8,
+            "alpha": 0.5,
+            "expansion": false,
+            "rerank_k": 5,
+            "boost": 0.0
+        },
+        "latency_seconds": 120.7690110206604,
+        "metrics": {
+            "total_tests": 12,
+            "average_score": 87.08333333333333,
+            "hallucination_rate": 0.0,
+            "block_accuracy": 1.0,
+            "retrieval_recall_at_3": 1.0
+        }
+    },
+    {
+        "name": "Step 2: Increase k to 10",
+        "params": {
+            "name": "Step 2: Increase k to 10",
+            "top_k": 10,
+            "alpha": 0.5,
+            "expansion": false,
+            "rerank_k": 5,
+            "boost": 0.0
+        },
+        "latency_seconds": 108.12831664085388,
+        "metrics": {
+            "total_tests": 12,
+            "average_score": 87.08333333333333,
+            "hallucination_rate": 0.0,
+            "block_accuracy": 0.6666666666666666,
+            "retrieval_recall_at_3": 1.0
+        }
+    },
+    {
+        "name": "Step 3: Weight 0.7 Dense",
+        "params": {
+            "name": "Step 3: Weight 0.7 Dense",
+            "top_k": 10,
+            "alpha": 0.7,
+            "expansion": false,
+            "rerank_k": 5,
+            "boost": 0.0
+        },
+        "latency_seconds": 115.62220501899719,
+        "metrics": {
+            "total_tests": 12,
+            "average_score": 85.83333333333333,
+            "hallucination_rate": 0.0,
+            "block_accuracy": 1.0,
+            "retrieval_recall_at_3": 1.0
+        }
+    },
+    {
+        "name": "Step 4: Weight 0.3 Dense",
+        "params": {
+            "name": "Step 4: Weight 0.3 Dense",
+            "top_k": 10,
+            "alpha": 0.3,
+            "expansion": false,
+            "rerank_k": 5,
+            "boost": 0.0
+        },
+        "latency_seconds": 108.10982704162598,
+        "metrics": {
+            "total_tests": 12,
+            "average_score": 87.5,
+            "hallucination_rate": 0.0,
+            "block_accuracy": 0.6666666666666666,
+            "retrieval_recall_at_3": 1.0
+        }
+    },
+    {
+        "name": "Step 5: Context Expansion (+1/-1)",
+        "params": {
+            "name": "Step 5: Context Expansion (+1/-1)",
+            "top_k": 10,
+            "alpha": 0.5,
+            "expansion": true,
+            "rerank_k": 5,
+            "boost": 0.0
+        },
+        "latency_seconds": 141.01382112503052,
+        "metrics": {
+            "total_tests": 12,
+            "average_score": 89.16666666666667,
+            "hallucination_rate": 0.0,
+            "block_accuracy": 1.0,
+            "retrieval_recall_at_3": 1.0
+        }
+    },
+    {
+        "name": "Step 6: Rerank Top 10",
+        "params": {
+            "name": "Step 6: Rerank Top 10",
+            "top_k": 10,
+            "alpha": 0.5,
+            "expansion": false,
+            "rerank_k": 10,
+            "boost": 0.0
+        },
+        "latency_seconds": 134.95030903816223,
+        "metrics": {
+            "total_tests": 12,
+            "average_score": 89.58333333333333,
+            "hallucination_rate": 0.0,
+            "block_accuracy": 0.6666666666666666,
+            "retrieval_recall_at_3": 1.0
+        }
+    },
+    {
+        "name": "Step 7: Metadata Boost (0.2)",
+        "params": {
+            "name": "Step 7: Metadata Boost (0.2)",
+            "top_k": 10,
+            "alpha": 0.5,
+            "expansion": false,
+            "rerank_k": 5,
+            "boost": 0.2
+        },
+        "latency_seconds": 144.34517312049866,
+        "metrics": {
+            "total_tests": 12,
+            "average_score": 88.33333333333333,
+            "hallucination_rate": 0.0,
+            "block_accuracy": 1.0,
+            "retrieval_recall_at_3": 1.0
+        }
+    },
+    {
+        "name": "Step 8: Kitchen Sink (Optimized)",
+        "params": {
+            "name": "Step 8: Kitchen Sink (Optimized)",
+            "top_k": 10,
+            "alpha": 0.7,
+            "expansion": true,
+            "rerank_k": 10,
+            "boost": 0.1
+        },
+        "latency_seconds": 185.28506326675415,
+        "metrics": {
+            "total_tests": 12,
+            "average_score": 87.08333333333333,
+            "hallucination_rate": 0.0,
+            "block_accuracy": 1.0,
+            "retrieval_recall_at_3": 1.0
+        }
+    }
+]
