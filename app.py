@@ -323,7 +323,7 @@ def load_models():
     return SentenceTransformer('all-MiniLM-L6-v2')
 
 def call_mistral_api(query, context):
-    api_key = os.getenv("MISTRAL_API_KEY")
+    api_key = os.getenv("GEMINI_API_KEY")
     url = "https://api.mistral.ai/v1/chat/completions"
     headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
     

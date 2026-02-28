@@ -51,7 +51,7 @@ pip install -r requirements.txt
 
 **Environment Config (`.env`):**
 ```bash
-MISTRAL_API_KEY=your_key_here
+GEMINI_API_KEY=your_key_here
 ```
 
 **Execute Node:**
