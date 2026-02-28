@@ -32,6 +32,7 @@ from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import letter
 import requests
 
+
 # Load environment variables
 load_dotenv()
 
@@ -323,10 +324,10 @@ def load_models():
     return SentenceTransformer('all-MiniLM-L6-v2')
 
 def call_mistral_api(query, context):
-    api_key = os.getenv("GEMINI_API_KEY")
+    api_key = os.getenv("MISTRAL_API_KEY")
     url = "https://api.mistral.ai/v1/chat/completions"
     headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
-    
+
     system_prompt = (
         "You are Genie, a precision AI assistant. "
         "Use ONLY the provided context. If the context does NOT contain the exact evidence needed to fully address the prompt, explicitly state 'ANSWER_NOT_IN_DOCUMENTS' and do not generate an answer.\n"
@@ -336,15 +337,15 @@ def call_mistral_api(query, context):
         "- Use LaTeX ($$ ... $$) for all math.\n"
         "- ALWAYS include inline citations like (Filename, Page X).\n"
     )
-    
+
     data = {
-        "model": "mistral-tiny",
+        "model": "mistral-small-latest",
         "messages": [
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": f"CONTEXT:\n{context}\n\nUSER INSTRUCTION: {query}"}
         ]
     }
-    
+
     try:
         response = requests.post(url, headers=headers, json=data)
         response.raise_for_status()
