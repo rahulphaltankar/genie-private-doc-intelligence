@@ -12,11 +12,12 @@ import re
 HARVARD_FULL_PATTERN = r"\([A-Za-z][\w\s\-\.]*,\s\d{4},\sp\.\s\d+\)"
 
 # Harvard n.d. citation: (filename.pdf, n.d.)
-HARVARD_ND_PATTERN = r"\([\w\s\-\.]+,\sn\.d\.\)"
+# Support markdown italics inside: (*filename.pdf*, n.d.)
+HARVARD_ND_PATTERN = r"\([\w\s\-\.\*]+,\sn\.d\.\)"
 
 # Page-aware citation from Hackathon 3: (filename.pdf, Page X)
-# Matches (Attention Is All You Need.pdf, Page 4)
-HARVARD_PAGE_PATTERN = r"\([\w\s\-\.]+,\sPage\s\d+\)"
+# Support markdown italics inside: (*filename.pdf*, Page 4)
+HARVARD_PAGE_PATTERN = r"\([\w\s\-\.\*]+,\sPage\s\d+\)"
 
 def extract_citations(answer: str) -> list:
     """
