@@ -11,12 +11,21 @@ def detect_mode(query: str) -> str:
         "explain",
         "summarize",
         "summarise",
+        "summary",
         "describe",
         "overview",
         "architecture",
         "how does",
         "what is the purpose",
-        "concept"
+        "concept",
+        "top",
+        "list",
+        "what are",
+        "key",
+        "main",
+        "outline",
+        "breakdown",
+        "section",
     ]
     
     for word in comprehension_keywords:
