@@ -1,7 +1,7 @@
 import numpy as np
-from hybrid_retriever import hybrid_search
-from bm25_index import BM25Index
-from metadata_schema import ChunkMeta
+from genie.pipeline.retriever import hybrid_search
+from genie.pipeline.bm25_index import BM25Index
+from genie.schemas.metadata_schema_v3 import ChunkMeta
 
 def evaluate_retrieval(queries, ground_truth, chunks, embeddings, bm25_index, top_k=5):
     """

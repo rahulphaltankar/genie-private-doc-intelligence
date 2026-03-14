@@ -1,5 +1,5 @@
 # genie/per_output_validator.py
-from grounding import compute_grounding_score   # you already have this
+from genie.pipeline.grounding import compute_grounding_score
 # Removed citation validator import for now, as it's not strictly necessary for MCQ validation here, and might raise undefined errors if not present.
 import logging
 

@@ -4,14 +4,14 @@ import faiss
 import numpy as np
 
 # Import Genie modules
-from ingestion_pipeline import process_uploaded_files
-from app import load_models, call_mistral_api, extract_number
-from bm25_index import BM25Index
-from hybrid_retriever import hybrid_search
-from reranker import Reranker
-from grounding import compute_grounding_score
-from gatekeeper import run_gatekeeper
-from mode_router import detect_mode
+from genie.pipeline.ingestion_pipeline_v3 import process_uploaded_files
+from genie.ui.app import load_models, call_mistral_api, extract_number
+from genie.pipeline.bm25_index import BM25Index
+from genie.pipeline.retriever import hybrid_search
+from genie.pipeline.reranker import Reranker
+from genie.pipeline.grounding import compute_grounding_score
+from genie.pipeline.gatekeeper import run_gatekeeper
+from genie.llm.router import detect_mode
 
 # Mock UI logic to load PDF
 def get_mock_uploaded_file(path):
@@ -82,9 +82,9 @@ def run_functional_test_suite():
         
         # Execute Generation
         if intent == "quiz":
-            from structured_extractor import extract_atomic_facts
-            from quiz_generator import generate_mcqs_from_facts
-            from per_output_validator import validate_mcq
+            from genie.tools.structured_extractor import extract_atomic_facts
+            from genie.tools.quiz_generator import generate_mcqs_from_facts
+            from genie.pipeline.per_output_validator import validate_mcq
             
             num_q = extract_number(prompt)
             facts = []

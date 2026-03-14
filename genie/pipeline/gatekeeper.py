@@ -20,7 +20,7 @@ Decision table:
 """
 
 from typing import Literal
-from citation_validator import has_valid_citations
+from genie.pipeline.citation_validator_v3 import has_valid_citations
 
 GatekeeperDecision = Literal["PASS", "SYNTHESIS", "BLOCK"]
 

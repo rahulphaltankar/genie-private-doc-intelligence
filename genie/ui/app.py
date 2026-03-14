@@ -10,22 +10,22 @@ import faiss
 import nltk
 
 # Genie Modules
-from ingestion_pipeline import process_uploaded_files
-from bm25_index import BM25Index
-from hybrid_retriever import hybrid_search
+from genie.pipeline.ingestion_pipeline_v3 import process_uploaded_files
+from genie.pipeline.bm25_index import BM25Index
+from genie.pipeline.retriever import hybrid_search
 try:
-    from reranker import Reranker
+    from genie.pipeline.reranker import Reranker
 except Exception as e:
     Reranker = None
     import traceback
     st.error(f"Genie System Error (Reranker Import): {str(e)}")
     st.code(traceback.format_exc())
-# from quiz_generator import generate_quiz
-from mode_router import detect_mode
-from citation_formatter import format_harvard_citation
-from grounding import compute_grounding_score
-from gatekeeper import run_gatekeeper
-from trace_logger import log_trace
+# from genie.tools.quiz_generator import generate_quiz
+from genie.llm.router import detect_mode
+from genie.pipeline.citation_formatter_v3 import format_harvard_citation
+from genie.pipeline.grounding import compute_grounding_score
+from genie.pipeline.gatekeeper import run_gatekeeper
+from genie.observability.logger import log_trace
 
 # UI Helpers
 from reportlab.pdfgen import canvas
@@ -406,7 +406,7 @@ def main():
                     st.session_state.vector_store = index
                     
                     # Initialize BM25 index (Hackathon-3 Step 4)
-                    from bm25_index import BM25Index
+                    from genie.pipeline.bm25_index import BM25Index
                     # Convert ChunkMeta to (text, filename) tuples for BM25
                     bm25_chunks = [(c.text, c.filename) for c in chunks]
                     st.session_state.bm25_index = BM25Index(bm25_chunks)
@@ -502,7 +502,7 @@ def main():
                     intent = detect_mode(user_msg)
                     
                     # Step 5: Hybrid Search replacement
-                    from hybrid_retriever import hybrid_search
+                    from genie.pipeline.retriever import hybrid_search
                     indices = hybrid_search(
                         query=user_msg,
                         vector_store=st.session_state.vector_store,
@@ -517,7 +517,7 @@ def main():
                     # Map indices back to ChunkMeta objects
                     candidates = [st.session_state.chunks[i] for i in indices]
                     
-                    from reranker import Reranker
+                    from genie.pipeline.reranker import Reranker
                     rer = Reranker()
                     scored = rer.rerank(user_msg, candidates)
                     top = [c for c, s in scored]
@@ -526,7 +526,7 @@ def main():
                         try:
                             num_q = extract_number(user_msg)
                             
-                            from structured_extractor import extract_atomic_facts
+                            from genie.tools.structured_extractor import extract_atomic_facts
                             facts = []
                             for chunk in top:
                                 facts.extend(extract_atomic_facts(chunk))
@@ -538,14 +538,14 @@ def main():
                                     unique[key] = f
                             facts = list(unique.values())
                             
-                            from quiz_generator import generate_mcqs_from_facts
+                            from genie.tools.quiz_generator import generate_mcqs_from_facts
                             mcqs = generate_mcqs_from_facts(facts, max_questions=num_q * 3)
                             
-                            from per_output_validator import validate_mcq
+                            from genie.pipeline.per_output_validator import validate_mcq
                             chunks_store = {c.chunk_id: c for c in st.session_state.chunks}
                             
                             final_mcqs = []
-                            from trace_logger import log_trace
+                            from genie.observability.logger import log_trace
                             for m in mcqs:
                                 ok, reason, score = validate_mcq(m, chunks_store)
                                 if ok:

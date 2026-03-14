@@ -1,3 +1,4 @@
+# Core RAG pipeline
 streamlit
 sentence-transformers
 faiss-cpu
@@ -10,3 +11,13 @@ reportlab
 torch
 rank_bm25
 nltk
+
+# v4 LLM providers
+google-generativeai
+anthropic
+google-cloud-aiplatform
+google-cloud-secret-manager
+
+# v4 config
+pydantic-settings
+tiktoken

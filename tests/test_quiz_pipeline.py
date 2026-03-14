@@ -1,12 +1,12 @@
 # tools/test_quiz_pipeline.py
 import pytest
-from hybrid_retriever import hybrid_search
-from reranker import Reranker
-from structured_extractor import extract_atomic_facts
-from quiz_generator import generate_mcqs_from_facts
-from per_output_validator import validate_mcq
+from genie.pipeline.retriever import hybrid_search
+from genie.pipeline.reranker import Reranker
+from genie.tools.structured_extractor import extract_atomic_facts
+from genie.tools.quiz_generator import generate_mcqs_from_facts
+from genie.pipeline.per_output_validator import validate_mcq
 from sentence_transformers import SentenceTransformer
-from bm25_index import BM25Index
+from genie.pipeline.bm25_index import BM25Index
 import numpy as np
 
 class DummyChunk:
@@ -47,7 +47,7 @@ def test_full_pipeline():
     # The hybrid search in our app expects different arguments, let's use the one we created in Step 3
     # Wait, the hybrid_search we created in Step 3 actually takes query string, not embedding.
     # Let's check hybrid_retriever.py
-    import hybrid_retriever
+    import genie.pipeline.retriever as hybrid_retriever
     
     # Actually wait, hybrid_retriever.py from Step 3 has:
     # def hybrid_search(query, vector_store, encoder_model, bm25_index, chunks, top_k=5):

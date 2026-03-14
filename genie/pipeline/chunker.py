@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime
 from typing import List
 import nltk
-from metadata_schema import ChunkMeta
+from genie.schemas.metadata_schema_v3 import ChunkMeta
 
 # Ensure nltk resources are available
 try:

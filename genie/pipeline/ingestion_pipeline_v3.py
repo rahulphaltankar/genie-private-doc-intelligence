@@ -3,8 +3,8 @@ import uuid
 from typing import List, Dict, Any
 from pypdf import PdfReader
 from docx import Document
-from chunker import chunk_by_page_text
-from metadata_schema import ChunkMeta
+from genie.pipeline.chunker import chunk_by_page_text
+from genie.schemas.metadata_schema_v3 import ChunkMeta
 
 def ingest_document(file_path: str) -> List[ChunkMeta]:
     """

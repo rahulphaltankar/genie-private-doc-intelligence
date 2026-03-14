@@ -1,7 +1,7 @@
 import pytest
 
 def test_extract_basic():
-    from structured_extractor import extract_atomic_facts
+    from genie.tools.structured_extractor import extract_atomic_facts
     chunk = type("C", (), {})()
     chunk.text = "The Transformer uses multi-head attention. We train models for 10 epochs. R_t is defined as beta/gamma. Irrelevant."
     chunk.doc_id = "doc1"
